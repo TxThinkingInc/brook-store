@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="https://cdn.jsdelivr.net/npm/beercss@3.5.1/dist/cdn/beer.min.css" rel="stylesheet" />
+    <script type="module" src="https://cdn.jsdelivr.net/npm/beercss@3.5.1/dist/cdn/beer.min.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/material-dynamic-colors@1.1.0/dist/cdn/material-dynamic-colors.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.4.23/dist/vue.global.prod.js"></script>
+    <!--RECAPTCHA_HEAD-->
+    <title>SITE_NAME</title>
+
+    <style>
+        body {
+            background: linear-gradient(135deg,
+                    rgba(255, 75, 75, 0.8) 0%,
+                    rgba(75, 75, 255, 0.8) 50%,
+                    rgba(75, 255, 75, 0.8) 100%);
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+    </style>
+
+    <script>
+        window.addEventListener("DOMContentLoaded", async (e) => {
+            var app = {
+                data() {
+                    return {
+                        user: {},
+                        password: '',
+                        contact: '',
+                        origin: location.origin,
+                    };
+                },
+                async mounted() {
+                    await this.getcontact();
+                    this.user.uuid = localStorage.getItem("uuid")
+                    if (this.user.uuid) {
+                        await this.getuser();
+                    }
+                },
+                methods: {
+                    async recaptcha_token() {
+                        if (!window.grecaptcha) {
+                            return ""
+                        }
+                        return new Promise((resolve, reject) => {
+                            grecaptcha.ready(() => {
+                                grecaptcha.execute('reCAPTCHA_site_key', {
+                                    action: 'submit'
+                                }).then((token) => {
+                                    resolve(token);
+                                }).catch(e => {
+                                    reject(`${e}`)
+                                })
+                            })
+                        })
+                    },
+                    async signup() {
+                        try {
+                            var s = await this.recaptcha_token()
+                            var res = await fetch("/signup?recaptcha_token=" + s, {
+                                method: "POST",
+                                body: JSON.stringify(this.user),
+                            })
+                            if (res.status != 200) {
+                                throw (await res.text())
+                                return
+                            }
+                            alert('ok')
+                        } catch (e) {
+                            alert(`${e}`)
+                        }
+                    },
+                    async signin() {
+                        try {
+                            var s = await this.recaptcha_token()
+                            var res = await fetch("/signin?recaptcha_token=" + s, {
+                                method: "POST",
+                                body: JSON.stringify(this.user),
+                            })
+                            if (res.status != 200) {
+                                throw (await res.text())
+                                return
+                            }
+                            this.user = await res.json();
+                            localStorage.setItem("uuid", this.user.uuid);
+                        } catch (e) {
+                            alert(`${e}`)
+                        }
+                    },
+                    async getuser() {
+                        try {
+                            var res = await fetch("/getuser", {
+                                method: "POST",
+                                body: JSON.stringify(this.user),
+                            })
+                            if (res.status != 200) {
+                                throw (await res.text())
+                                return
+                            }
+                            this.user = await res.json();
+                        } catch (e) {
+                            alert(`${e}`)
+                        }
+                    },
+                    async getcontact() {
+                        try {
+                            var res = await fetch("/getcontact")
+                            if (res.status != 200) {
+                                throw (await res.text())
+                                return
+                            }
+                            this.contact = (await res.json()).v;
+                        } catch (e) {
+                            alert(`${e}`)
+                        }
+                    },
+                    async updatepassword() {
+                        try {
+                            var res = await fetch("/updatepassword", {
+                                method: "POST",
+                                body: JSON.stringify({...this.user, password: this.password}),
+                            })
+                            if (res.status != 200) {
+                                throw (await res.text())
+                                return
+                            }
+                            alert('ok')
+                        } catch (e) {
+                            alert(`${e}`)
+                        }
+                    },
+                },
+            };
+            Vue.createApp(app).mount("body");
+        });
+    </script>
+</head>
+
+<body style="margin:0;">
+    <header>
+        <nav>
+            <h5 class="max center-align">SITE_NAME</h5>
+        </nav>
+    </header>
+    <main>
+        <div style="height:30px;"></div>
+        <div style="display: flex;flex-direction:row;justify-content:center;">
+            <a class="chip" style="color:white;border-color: white;">$3/100G/month</a>
+            <a class="chip" style="color:white;border-color: white;">$5/200G/month</a>
+            <a class="chip" style="color:white;border-color: white;">$10/500G/month</a>
+        </div>
+        <div style="height:30px;"></div>
+        <div style="display:flex;flex-direction: column;align-items:center" v-if="user.uuid">
+            <article>
+                <h5>{{user.username}}</h5>
+                <div style="height:10px;"></div>
+                <div>{{new Date(user.expired_at*1000).toLocaleString()}}</div>
+                <div style="height:10px;"></div>
+                <div>{{user.traffic_now}}/{{user.traffic_max}}M</div>
+                <div style="height:10px;"></div>
+                <code style="text-align: center;word-break: break-all;">{{origin+'/import?uuid='+user.uuid}}</code>
+            </article>
+        </div>
+        <div style="height:30px;"></div>
+        <div style="display:flex;flex-direction: row;justify-content:center" v-if="user.uuid">
+            <article>
+                <h5>Update Password</h5>
+                <div style="height:10px;"></div>
+                <div class="field label border">
+                    <input type="text" v-model="password">
+                    <label>Password</label>
+                </div>
+                <button @click="updatepassword">Update</button>
+            </article>
+        </div>
+        <div style="height:30px;"></div>
+        <div v-if="user.uuid" style="text-align: center;color:white;font-weight: bold;">Download Brook client from <a href="https://brook.app" target="_blank">https://brook.app</a> and import your link. Note that sharing your link is equivalent to sharing your username and password.</div>
+        <div v-if="user.uuid" style="text-align: center;color:white;font-weight: bold;">If you have any questions, the only way to contact us is: {{contact}}</div>
+        <div style="display:flex;flex-direction: row;justify-content:center" v-if="!user.uuid">
+            <article style="display:flex;flex-direction:column;align-items: center;">
+                <h5>Signin/Signup</h5>
+                <div style="height:10px;"></div>
+                <div class="field label border">
+                    <input type="text" v-model="user.username">
+                    <label>Username</label>
+                </div>
+                <div class="field label border">
+                    <input type="text" v-model="user.password">
+                    <label>Password</label>
+                </div>
+                <div style="display:flex;flex-direction:row;justify-content:center">
+                    <button @click="signup">Signup</button>
+                    <div style="width:30px;"></div>
+                    <button @click="signin">Signin</button>
+                </div>
+            </article>
+        </div>
+    </main>
+</body>
+
+</html>

@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="https://cdn.jsdelivr.net/npm/beercss@3.5.1/dist/cdn/beer.min.css" rel="stylesheet" />
+    <script type="module" src="https://cdn.jsdelivr.net/npm/beercss@3.5.1/dist/cdn/beer.min.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/material-dynamic-colors@1.1.0/dist/cdn/material-dynamic-colors.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.4.23/dist/vue.global.prod.js"></script>
+    <title>SITE_NAME</title>
+    <script>
+        window.addEventListener("DOMContentLoaded", async (e) => {
+            var app = {
+                data() {
+                    return {
+                        tab: 'brook',
+                        user: null,
+                        users: [],
+                        brook: null,
+                        brooks: [],
+                        task: null,
+                        tasks: [],
+                        settings: {},
+                        origin: location.origin,
+                    };
+                },
+                watch: {
+                    tab: async function () {
+                        if (this.tab == 'user') {
+                            this.user = null
+                            await this.getusers()
+                        }
+                        if (this.tab == 'brook') {
+                            this.brook = null
+                            await this.getbrooks()
+                        }
+                        if (this.tab == 'task') {
+                            this.task = null
+                            await this.gettasks()
+                        }
+                    },
+                },
+                async mounted() {
+                    await this.getbrooks()
+                    await this.getsettings()
+                },
+                methods: {
+                    async getusers() {
+                        try {
+                            var res = await fetch("/getusers")
+                            if (res.status != 200) {
+                                alert(await res.text())
+                                return
+                            }
+                            this.users = await res.json()
+                        } catch (e) {
+                            alert(`${e}`)
+                        }
+                    },
+                    async adduser() {
+                        try {
+                            var user = JSON.parse(JSON.stringify(this.user))
+                            user.expired_at = parseInt(new Date(user.expired_at).getTime() / 1000)
+                            var res = await fetch("/adduser", {
+                                method: "POST",
+                                body: JSON.stringify(user),
+                            })
+                            if (res.status != 200) {
+                                alert(await res.text())
+                                return
+                            }
+                            this.users.push(await res.json())
+                            this.user = null;
+                        } catch (e) {
+                            alert(`${e}`)
+                        }
+                    },
+                    async edituser(user) {
+                        this.user = {
+                            ...user,
+                            expired_at: new Date(user.expired_at * 1000).toISOString().slice(0, 10),
+                            password: '',
+                        }
+                    },
+                    async updateuser() {
+                        try {
+                            var user = JSON.parse(JSON.stringify(this.user))
+                            user.expired_at = parseInt(new Date(user.expired_at).getTime() / 1000)
+                            var res = await fetch("/updateuser", {
+                                method: "POST",
+                                body: JSON.stringify(user),
+                            })
+                            if (res.status != 200) {
+                                alert(await res.text())
+                                return
+                            }
+                            this.users.splice(this.users.findIndex(v => v.id == user.id), 1, await res.json());
+                            this.user = null;
+                        } catch (e) {
+                            alert(`${e}`)
+                        }
+                    },
+                    async getbrooks() {
+                        try {
+                            var res = await fetch("/getbrooks")
+                            if (res.status != 200) {
+                                alert(await res.text())
+                                return
+                            }
+                            this.brooks = await res.json()
+                        } catch (e) {
+                            alert(`${e}`)
+                        }
+                    },
+                    async addbrook() {
+                        try {
+                            var res = await fetch("/addbrook", {
+                                method: "POST",
+                                body: JSON.stringify(this.brook),
+                            })
+                            if (res.status != 200) {
+                                alert(await res.text())
+                                return
+                            }
+                            this.brooks.push(await res.json())
+                            this.brook = null;
+                        } catch (e) {
+                            alert(`${e}`)
+                        }
+                    },
+                    async removebrook(brook) {
+                        try {
+                            var res = await fetch("/removebrook", {
+                                method: "POST",
+                                body: JSON.stringify(brook),
+                            })
+                            if (res.status != 200) {
+                                alert(await res.text())
+                                return
+                            }
+                            this.brooks.splice(this.brooks.findIndex(v => v.id == brook.id), 1)
+                            this.brook = null;
+                        } catch (e) {
+                            alert(`${e}`)
+                        }
+                    },
+                    nameoflink(v) {
+                        var u = new URL(v)
+                        return u.searchParams.get("name") ?? 'no name'
+                    },
+                    async gettasks() {
+                        try {
+                            var res = await fetch("/gettasks")
+                            if (res.status != 200) {
+                                alert(await res.text())
+                                return
+                            }
+                            this.tasks = await res.json()
+                        } catch (e) {
+                            alert(`${e}`)
+                        }
+                    },
+                    async addtask() {
+                        try {
+                            var res = await fetch("/addtask", {
+                                method: "POST",
+                                body: JSON.stringify(this.task),
+                            })
+                            if (res.status != 200) {
+                                alert(await res.text())
+                                return
+                            }
+                            this.tasks.push(await res.json())
+                            this.task = null;
+                        } catch (e) {
+                            alert(`${e}`)
+                        }
+                    },
+                    async removetask(task) {
+                        try {
+                            var res = await fetch("/removetask", {
+                                method: "POST",
+                                body: JSON.stringify(task),
+                            })
+                            if (res.status != 200) {
+                                alert(await res.text())
+                                return
+                            }
+                            this.tasks.splice(this.tasks.findIndex(v => v.id == task.id), 1)
+                            this.task = null;
+                        } catch (e) {
+                            alert(`${e}`)
+                        }
+                    },
+                    async getsettings() {
+                        try {
+                            var res = await fetch("/getsettings")
+                            if (res.status != 200) {
+                                alert(await res.text())
+                                return
+                            }
+                            (await res.json()).forEach(v => {
+                                this.settings[v.k] = v;
+                            });
+                        } catch (e) {
+                            alert(`${e}`)
+                        }
+                    },
+                    async updatesetting(setting, setting1) {
+                        try {
+                            var res = await fetch("/updatesetting", {
+                                method: "POST",
+                                body: JSON.stringify(setting),
+                            })
+                            if (res.status != 200) {
+                                alert(await res.text())
+                                return
+                            }
+                            if (setting1) {
+                                var res = await fetch("/updatesetting", {
+                                    method: "POST",
+                                    body: JSON.stringify(setting1),
+                                })
+                                if (res.status != 200) {
+                                    alert(await res.text())
+                                    return
+                                }
+                            }
+                            alert('ok')
+                        } catch (e) {
+                            alert(`${e}`)
+                        }
+                    },
+                },
+            };
+            Vue.createApp(app).mount("body");
+        });
+    </script>
+</head>
+
+<body style="margin:0;background-color:#f9f9fb">
+    <nav class="left drawer">
+        <div style="padding: 15px;">
+            <h5>
+                <a href="https://brook.app">{{settings.site_name ? settings.site_name.v : ''}}</a>
+            </h5>
+        </div>
+        <div class="small-divider"></div>
+        <a @click="this.tab='brook'">
+            <i>dns</i>
+            <div>Brook</div>
+        </a>
+        <a @click="this.tab='user'">
+            <i>face</i>
+            <div>User</div>
+        </a>
+        <a @click="this.tab='task'">
+            <i>schedule</i>
+            <div>Task</div>
+        </a>
+        <div class="small-divider"></div>
+        <a @click="this.tab='blockDomainList'">
+            <i>reorder</i>
+            <div>blockDomainList</div>
+        </a>
+        <a @click="this.tab='blockCIDR4List'">
+            <i>reorder</i>
+            <div>blockCIDR4List</div>
+        </a>
+        <a @click="this.tab='blockCIDR6List'">
+            <i>reorder</i>
+            <div>blockCIDR6List</div>
+        </a>
+        <div class="small-divider"></div>
+        <a @click="this.tab='admin'">
+            <i>admin_panel_settings</i>
+            <div>Admin</div>
+        </a>
+        <a @click="this.tab='site_name'">
+            <i>badge</i>
+            <div>Site Name</div>
+        </a>
+        <a @click="this.tab='reCAPTCHA'">
+            <i>robot</i>
+            <div>reCAPTCHA</div>
+        </a>
+        <a @click="this.tab='signup'">
+            <i>how_to_reg</i>
+            <div>Signup</div>
+        </a>
+        <a @click="this.tab='import_dislike_browser'">
+            <i>visibility</i>
+            <div>Import Visable</div>
+        </a>
+        <a @click="this.tab='contact'">
+            <i>contact_support</i>
+            <div>Contact</div>
+        </a>
+    </nav>
+    <main class="responsive" style="background-color:#ffffff">
+        <div v-if="tab=='brook'" style="padding:30px;">
+            <div v-if="brook" style="display:flex;flex-direction:column">
+                <h3>Add Brook</h3>
+                <div style="display:flex;justify-content:flex-end">
+                    <button @click="this.brook=null" class="border">Back</button>
+                </div>
+                <div style="height:30px;"></div>
+                <div style="text-align: center;word-break: break-all;">When deploying brook, your should specify <code>--userAPI '{{origin}}/{{settings.user_api_path.v}}'</code> and <code>--serverLog</code> and <code>--pid</code>. When you make brook link, no need to specify <code>--token</code>, because this system will auto append token to your brook link. Based on different combinations of the brook link parameters, there may be one or more brook links for one brook.</div>
+                <div style="height:30px;"></div>
+                <div class="field label border">
+                    <input type="text" v-model="brook.link">
+                    <label>Brook Link</label>
+                    <span class="helper">brook://...</span>
+                </div>
+                <div style="height:30px;"></div>
+                <button @click="addbrook">Add</button>
+            </div>
+            <div v-if="!brook">
+                <h3>Brook</h3>
+                <div style="display:flex;justify-content:flex-end">
+                    <button @click="this.brook={}">Add Brook</button>
+                </div>
+                <div style="height:30px;"></div>
+                <div class="row" v-for="v in brooks">
+                    <i class="light-green-text">dns</i>
+                    <div class="max">{{nameoflink(v.link)}}</div>
+                    <div class="max">{{v.link}}</div>
+                    <a @click="removebrook(v)">
+                        <i>delete</i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div v-if="tab=='user'" style="padding:30px;">
+            <div v-if="user" style="display:flex;flex-direction:column">
+                <h3>{{ user.id ? 'Edit User' : 'Add User' }}</h3>
+                <div style="display:flex;justify-content:flex-end">
+                    <button @click="this.user=null" class="border">Back</button>
+                </div>
+                <div style="height:30px;"></div>
+                <div class="field label border">
+                    <input type="text" :disabled="user.id" v-model="user.username">
+                    <label>Username</label>
+                </div>
+                <div class="field label border">
+                    <input type="text" v-model="user.password">
+                    <label>Password</label>
+                    <span class="helper">{{ user.id ? 'leave blank if you do not want to change password' : ''}}</span>
+                </div>
+                <div class="field label border">
+                    <input type="date" v-model="user.expired_at">
+                    <label>ExpiredAt</label>
+                </div>
+                <div class="field label border">
+                    <input type="text" v-model="user.traffic_max">
+                    <label>TrafficMax(M)</label>
+                </div>
+                <div style="height:30px;"></div>
+                <button @click="adduser" v-if="!user.id">Add</button>
+                <button @click="updateuser" v-if="user.id">Update</button>
+            </div>
+            <div v-if="!user">
+                <h3>User</h3>
+                <div style="display:flex;justify-content:flex-end">
+                    <button @click="this.user={}">Add User</button>
+                </div>
+                <div style="height:30px;"></div>
+                <div class="row" v-for="v in users">
+                    <i class="light-green-text">face</i>
+                    <div class="max">{{v.username}}</div>
+                    <div class="max">{{v.traffic_now}}/{{v.traffic_max}}M {{new Date(v.expired_at*1000).toLocaleString()}}</div>
+                    <a :href="'/import?uuid='+v.uuid">
+                        <i>link</i>
+                    </a>
+                    <a @click="edituser(v)">
+                        <i>edit</i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div v-if="tab=='task'" style="padding:30px;">
+            <div v-if="task" style="display:flex;flex-direction:column">
+                <h3>Add Task</h3>
+                <div style="display:flex;justify-content:flex-end">
+                    <button @click="this.task=null" class="border">Back</button>
+                </div>
+                <div style="height:30px;"></div>
+                <div style="text-align: center;">Once you have deployed a brook, the task will regularly tally each user’s traffic from the deployed brook every hour.</div>
+                <div style="height:30px;"></div>
+                <div class="field label border">
+                    <input type="text" v-model="task.server">
+                    <label>Server</label>
+                    <span class="helper">1.2.3.4:22</span>
+                </div>
+                <div class="field label border">
+                    <input type="text" v-model="task.user">
+                    <label>User</label>
+                </div>
+                <div class="field label border">
+                    <input type="text" v-model="task.password">
+                    <label>Password</label>
+                    <span class="helper">You must specify either a password or an SSH key</span>
+                </div>
+                <div class="field textarea border">
+                    <textarea v-model="task.sshkey"></textarea>
+                    <span class="helper">You must specify either a password or an SSH key</span>
+                </div>
+                <div class="field label border">
+                    <input type="text" v-model="task.serverlog_path">
+                    <label>Server Log Path</label>
+                    <span class="helper">The value you specified for --serverLog when deploying brook</span>
+                </div>
+                <div class="field label border">
+                    <input type="text" v-model="task.pid_path">
+                    <label>PID Path</label>
+                    <span class="helper">The value you specified for --pid when deploying brook</span>
+                </div>
+                <div style="height:30px;"></div>
+                <button @click="addtask">Add</button>
+            </div>
+            <div v-if="!task">
+                <h3>Task</h3>
+                <div style="display:flex;justify-content:flex-end">
+                    <button @click="this.task={password: '', sshkey: ''}">Add Task</button>
+                </div>
+                <div style="height:30px;"></div>
+                <div class="row" v-for="v in tasks">
+                    <i class="light-green-text">schedule</i>
+                    <div class="max">{{v.server}}</div>
+                    <div class="max">{{v.serverlog_path}} {{v.pid_path}}</div>
+                    <a @click="removetask(v)">
+                        <i>delete</i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div v-if="tab=='blockDomainList'" style="padding:30px;">
+            <div style="display:flex;flex-direction:column">
+                <h3>blockDomainList</h3>
+                <div style="height:30px;"></div>
+                <div style="text-align: center;">When deploying brook, you can specify <code>--blockDomainList '{{origin}}/blockDomainList'</code>.</div>
+                <div style="height:30px;"></div>
+                <div class="field textarea border">
+                    <textarea v-model="settings.blockDomainList.v"></textarea>
+                </div>
+                <div style="height:30px;"></div>
+                <button @click="updatesetting(settings.blockDomainList)">Update</button>
+            </div>
+        </div>
+        <div v-if="tab=='blockCIDR4List'" style="padding:30px;">
+            <div style="display:flex;flex-direction:column">
+                <h3>blockCIDR4List</h3>
+                <div style="height:30px;"></div>
+                <div style="text-align: center;">When deploying brook, you can specify <code>--blockCIDR4List '{{origin}}/blockCIDR4List'</code>.</div>
+                <div style="height:30px;"></div>
+                <div class="field textarea border">
+                    <textarea v-model="settings.blockCIDR4List.v"></textarea>
+                </div>
+                <div style="height:30px;"></div>
+                <button @click="updatesetting(settings.blockCIDR4List)">Update</button>
+            </div>
+        </div>
+        <div v-if="tab=='blockCIDR6List'" style="padding:30px;">
+            <div style="display:flex;flex-direction:column">
+                <h3>blockCIDR6List</h3>
+                <div style="height:30px;"></div>
+                <div style="text-align: center;">When deploying brook, you can specify <code>--blockCIDR6List '{{origin}}/blockCIDR6List'</code>.</div>
+                <div style="height:30px;"></div>
+                <div class="field textarea border">
+                    <textarea v-model="settings.blockCIDR6List.v"></textarea>
+                </div>
+                <div style="height:30px;"></div>
+                <button @click="updatesetting(settings.blockCIDR6List)">Update</button>
+            </div>
+        </div>
+        <div v-if="tab=='admin'" style="padding:30px;">
+            <div style="display:flex;flex-direction:column">
+                <h3>Admin</h3>
+                <div style="height:30px;"></div>
+                <div class="field label border">
+                    <input type="text" v-model="settings.adminuser.v" disabled>
+                    <label>Username</label>
+                </div>
+                <div class="field label border">
+                    <input type="text" v-model="settings.adminpassword.v">
+                    <label>Password</label>
+                </div>
+                <div style="height:30px;"></div>
+                <button @click="updatesetting(settings.adminpassword)">Update</button>
+            </div>
+        </div>
+        <div v-if="tab=='site_name'" style="padding:30px;">
+            <div style="display:flex;flex-direction:column">
+                <h3>Site Name</h3>
+                <div style="height:30px;"></div>
+                <div class="field label border">
+                    <input type="text" v-model="settings.site_name.v">
+                    <label>Site Name</label>
+                </div>
+                <div style="height:30px;"></div>
+                <button @click="updatesetting(settings.site_name)">Update</button>
+            </div>
+        </div>
+        <div v-if="tab=='reCAPTCHA'" style="padding:30px;">
+            <div style="display:flex;flex-direction:column">
+                <h3>reCAPTCHA</h3>
+                <div style="height:30px;"></div>
+                <div style="text-align: center;">This can prevent users from maliciously invoking signup and signin.</div>
+                <div style="height:30px;"></div>
+                <div class="field label border">
+                    <input type="text" v-model="settings.reCAPTCHAKey.v">
+                    <label>Google reCAPTCHA v3 key</label>
+                </div>
+                <div class="field label border">
+                    <input type="text" v-model="settings.reCAPTCHASecret.v">
+                    <label>Google reCAPTCHA v3 secret</label>
+                </div>
+                <div style="height:30px;"></div>
+                <button @click="updatesetting(settings.reCAPTCHAKey, settings.reCAPTCHASecret)">Update</button>
+            </div>
+        </div>
+        <div v-if="tab=='signup'" style="padding:30px;">
+            <div style="display:flex;flex-direction:column">
+                <h3>Signup</h3>
+                <div style="height:30px;"></div>
+                <div class="field suffix border">
+                    <select v-model="settings.signup.v">
+                        <option :selected="settings.signup.v == 'true'" value="true">Enable</option>
+                        <option :selected="settings.signup.v == 'false'" value="false">Disable</option>
+                    </select>
+                    <i>arrow_drop_down</i>
+                </div>
+                <div style="height:30px;"></div>
+                <button @click="updatesetting(settings.signup)">Update</button>
+            </div>
+        </div>
+        <div v-if="tab=='import_dislike_browser'" style="padding:30px;">
+            <div style="display:flex;flex-direction:column">
+                <h3>Import Visable</h3>
+                <div style="height:30px;"></div>
+                <div class="field suffix border">
+                    <select v-model="settings.import_dislike_browser.v">
+                        <option :selected="settings.import_dislike_browser.v == 'true'" value="true">The imported link can not be accessed by the browser</option>
+                        <option :selected="settings.import_dislike_browser.v == 'false'" value="false">The imported link can be accessed by the browser</option>
+                    </select>
+                    <i>arrow_drop_down</i>
+                </div>
+                <div style="height:30px;"></div>
+                <button @click="updatesetting(settings.import_dislike_browser)">Update</button>
+            </div>
+        </div>
+        <div v-if="tab=='contact'" style="padding:30px;">
+            <div style="display:flex;flex-direction:column">
+                <h3>Contact</h3>
+                <div style="height:30px;"></div>
+                <div class="field label border">
+                    <input type="text" v-model="settings.contact.v">
+                    <label>Contact</label>
+                </div>
+                <div style="height:30px;"></div>
+                <button @click="updatesetting(settings.contact)">Update</button>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>
