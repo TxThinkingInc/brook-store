@@ -23,3 +23,7 @@ joker nico yourdomain.com http://127.0.0.1:24402
 
 - Admin: https://yourdomain.com/admin/, default username is `brook` and password is `brook`
 - User: https://yourdomain.com
+
+## Demo
+
+There is a online demo https://cheap.shiliew.com
