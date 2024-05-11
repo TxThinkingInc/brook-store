@@ -1,6 +1,6 @@
 # Brook User System
 
-This is a sample implementation of a [Brook User System](https://github.com/txthinking/brook/blob/master/protocol/user.md). Of course, you can add more features or meet your needs by submitting PR or by forking for yourself.
+This is a sample implementation of [Brook User System](https://github.com/txthinking/brook/blob/master/protocol/user.md). Of course, you can add more features or meet your needs by submitting PR or by forking for yourself.
 
 ## Install via [nami](https://github.com/txthinking/nami)
 
