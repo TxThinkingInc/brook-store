@@ -44,13 +44,6 @@ Bun.serve({
 
             if (p == "/") {
                 var html = new TextDecoder().decode(static_file("static/index.html"))
-                var k = db.query('select * from setting where k="reCAPTCHAKey"').get().v
-                var s = db.query('select * from setting where k="reCAPTCHASecret"').get().v
-                if (k && s) {
-                    html = html
-                        .replace('<!--RECAPTCHA_HEAD-->', `<script src="https://www.recaptcha.net/recaptcha/api.js?render=${k}"></script>`)
-                        .replace('<!--RECAPTCHA_KEY-->', k)
-                }
                 var site_name = db.query('select * from setting where k="site_name"').get().v
                 html = html.replaceAll('SITE_NAME', site_name)
                 return new Response(html, {
