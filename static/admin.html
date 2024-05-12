@@ -281,10 +281,6 @@
             <i>badge</i>
             <div>Site Name</div>
         </a>
-        <a @click="this.tab='reCAPTCHA'">
-            <i>robot</i>
-            <div>reCAPTCHA</div>
-        </a>
         <a @click="this.tab='signup'">
             <i>how_to_reg</i>
             <div>Signup</div>
@@ -500,24 +496,6 @@
                 </div>
                 <div style="height:30px;"></div>
                 <button @click="updatesetting(settings.site_name)">Update</button>
-            </div>
-        </div>
-        <div v-if="tab=='reCAPTCHA'" style="padding:30px;">
-            <div style="display:flex;flex-direction:column">
-                <h3>reCAPTCHA</h3>
-                <div style="height:30px;"></div>
-                <div style="text-align: center;">This can prevent users from maliciously invoking signup and signin.</div>
-                <div style="height:30px;"></div>
-                <div class="field label border">
-                    <input type="text" v-model="settings.reCAPTCHAKey.v">
-                    <label>Google reCAPTCHA v3 key</label>
-                </div>
-                <div class="field label border">
-                    <input type="text" v-model="settings.reCAPTCHASecret.v">
-                    <label>Google reCAPTCHA v3 secret</label>
-                </div>
-                <div style="height:30px;"></div>
-                <button @click="updatesetting(settings.reCAPTCHAKey, settings.reCAPTCHASecret)">Update</button>
             </div>
         </div>
         <div v-if="tab=='signup'" style="padding:30px;">
