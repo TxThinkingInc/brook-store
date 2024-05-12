@@ -53,12 +53,6 @@ insert into setting(k, v) values('blockCIDR4List', '127.0.0.1/32\n1.2.4.8/32')
     m('init blockCIDR6List setting', `
 insert into setting(k, v) values('blockCIDR6List', '::1/128\nfd00::/8')
 `)
-    m('init reCAPTCHAKey setting', `
-insert into setting(k, v) values('reCAPTCHAKey', '')
-`)
-    m('init reCAPTCHASecret setting', `
-insert into setting(k, v) values('reCAPTCHASecret', '')
-`)
     m('init adminuser setting', `
 insert into setting(k, v) values('adminuser', 'brook')
 `)

@@ -8,7 +8,6 @@
     <script type="module" src="https://cdn.jsdelivr.net/npm/beercss@3.5.1/dist/cdn/beer.min.js"></script>
     <script type="module" src="https://cdn.jsdelivr.net/npm/material-dynamic-colors@1.1.0/dist/cdn/material-dynamic-colors.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@3.4.23/dist/vue.global.prod.js"></script>
-    <!--RECAPTCHA_HEAD-->
     <title>SITE_NAME</title>
 
     <style>
@@ -42,26 +41,9 @@
                     }
                 },
                 methods: {
-                    async recaptcha_token() {
-                        if (!window.grecaptcha) {
-                            return ""
-                        }
-                        return new Promise((resolve, reject) => {
-                            grecaptcha.ready(() => {
-                                grecaptcha.execute('reCAPTCHA_site_key', {
-                                    action: 'submit'
-                                }).then((token) => {
-                                    resolve(token);
-                                }).catch(e => {
-                                    reject(`${e}`)
-                                })
-                            })
-                        })
-                    },
                     async signup() {
                         try {
-                            var s = await this.recaptcha_token()
-                            var res = await fetch("/signup?recaptcha_token=" + s, {
+                            var res = await fetch("/signup", {
                                 method: "POST",
                                 body: JSON.stringify(this.user),
                             })
@@ -76,8 +58,7 @@
                     },
                     async signin() {
                         try {
-                            var s = await this.recaptcha_token()
-                            var res = await fetch("/signin?recaptcha_token=" + s, {
+                            var res = await fetch("/signin", {
                                 method: "POST",
                                 body: JSON.stringify(this.user),
                             })

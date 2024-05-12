@@ -33,26 +33,9 @@ function basicauth(req) {
     }
 }
 
-async function recaptchaauth(req) {
-    var k = db.query('select * from setting where k="reCAPTCHAKey"').get().v
-    var s = db.query('select * from setting where k="reCAPTCHASecret"').get().v
-    if (k && s) {
-        var r = await fetch('https://www.google.com/recaptcha/api/siteverify', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({ secret: s, response: new URL(req.url).searchParams.get('recaptcha_token') }).toString(),
-        })
-        if (!(await r.json()).success) {
-            throw 'Are you bot?'
-        }
-    }
-}
-
 Bun.serve({
     development: false,
-    port: 24402,
+    port: process.env.dev ? 8080 : 24402,
     hostname: '127.0.0.1',
     async fetch(req, server) {
         try {
@@ -266,7 +249,6 @@ Bun.serve({
             }
             // frontend
             if (p == "/signup") {
-                await recaptchaauth(req)
                 if (db.query('select * from setting where k="signup"').get().v != 'true') {
                     var s = db.query('select * from setting where k="contact"').get().v
                     throw `Please contact ${s} to open an account`
@@ -293,7 +275,6 @@ Bun.serve({
                 })
             }
             if (p == "/signin") {
-                await recaptchaauth(req)
                 var j = await req.json()
                 var c = require('crypto');
                 var hash = c.createHash('sha256');
