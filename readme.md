@@ -8,10 +8,10 @@ This is a sample implementation of [Brook User System](https://github.com/txthin
 nami install brook-user-system
 ```
 
-If you don't have joker and nico yet
+If you don't have joker, nico and sshexec yet
 
 ```
-nami install joker nico
+nami install joker nico sshexec
 ```
 
 Run it
