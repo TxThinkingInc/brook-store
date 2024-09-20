@@ -1,21 +1,21 @@
-import _ from './lib/jb'
 import os from 'node:os';
 import sqlite from './lib/sqlite'
 import migration from './migration'
 import task from './task'
-import readFileSync from './bundle.js';
-import fs from 'node:fs';
+import bundled from './bundled.js';
+import * as fs from 'node:fs/promises';
+import lib from './lib/lib.js'
 
 var db = sqlite(os.homedir() + "/.brook.db")
 migration(db)
 task(db)
 var user_api_path = db.query("select * from setting where k='user_api_path'").get().v
 
-function static_file(s) {
+async function static_file(s) {
     if (process.env.dev) {
-        return fs.readFileSync(s);
+        return new TextEncoder().encode(await fs.readFile(s, { encoding: 'utf8' }))
     }
-    return readFileSync(s)
+    return bundled(s)
 }
 
 function basicauth(req) {
@@ -34,7 +34,7 @@ function basicauth(req) {
 }
 
 Bun.serve({
-    development: false,
+    development: process.env.dev ? true : false,
     port: process.env.dev ? 8080 : 24402,
     hostname: '127.0.0.1',
     async fetch(req, server) {
@@ -42,36 +42,50 @@ Bun.serve({
             var p = new URL(req.url).pathname;
             var q = (k) => new URL(req.url).searchParams.get(k) ? new URL(req.url).searchParams.get(k).trim() : '';
 
+            // html
             if (p == "/") {
-                var html = new TextDecoder().decode(static_file("static/index.html"))
+                if (!process.env.dev) {
+                    if (req.headers.get('If-None-Match')) {
+                        return new Response(null, { status: 304 })
+                    }
+                }
+                var html = new TextDecoder().decode(await static_file("static/index.html"))
                 var site_name = db.query('select * from setting where k="site_name"').get().v
                 html = html.replaceAll('SITE_NAME', site_name)
                 return new Response(html, {
                     status: 200,
                     headers: new Headers({
+                        "ETag": "20240920",
                         "Content-Type": "text/html; charset=uff-8",
                     }),
                 })
             }
             if (p == "/admin" || p == "/admin/") {
                 var r = basicauth(req); if (r) return r
+                if (!process.env.dev) {
+                    if (req.headers.get('If-None-Match')) {
+                        return new Response(null, { status: 304 })
+                    }
+                }
                 var site_name = db.query('select * from setting where k="site_name"').get().v
-                var html = new TextDecoder().decode(static_file("static/admin.html"))
+                var html = new TextDecoder().decode(await static_file("static/admin.html"))
                 html = html.replaceAll('SITE_NAME', site_name)
                 return new Response(html, {
                     status: 200,
                     headers: new Headers({
+                        "ETag": "https://brook.app",
                         "Content-Type": "text/html; charset=uff-8",
                     }),
                 })
             }
+
             // userAPI
             if (p == "/" + user_api_path) {
                 var r = db.query('select * from user where uuid=?').get(q('token'))
                 if (!r) {
                     throw `invalid token ${q('token')}`
                 }
-                if (r.expired_at < now()) {
+                if (r.expired_at < lib.now()) {
                     throw `expired user ${r.id}`
                 }
                 if (r.traffic_now > r.traffic_max) {
@@ -91,6 +105,7 @@ Bun.serve({
                 var s = db.query('select * from setting where k="blockCIDR6List"').get().v
                 return new Response(s)
             }
+
             // backend
             if (p == "/adduser") {
                 var r = basicauth(req); if (r) return r
@@ -106,7 +121,7 @@ Bun.serve({
                     expired_at: j.expired_at,
                     traffic_max: j.traffic_max,
                     traffic_now: 0,
-                    created_at: now(),
+                    created_at: lib.now(),
                 })
                 return new Response(JSON.stringify(r), {
                     status: 200,
@@ -155,7 +170,7 @@ Bun.serve({
                 var j = await req.json()
                 var r = db.c('brook', {
                     link: j.link,
-                    created_at: now(),
+                    created_at: lib.now(),
                 })
                 return new Response(JSON.stringify(r), {
                     status: 200,
@@ -190,7 +205,7 @@ Bun.serve({
                     sshkey: j.sshkey,
                     serverlog_path: j.serverlog_path,
                     pid_path: j.pid_path,
-                    created_at: now(),
+                    created_at: lib.now(),
                 })
                 return new Response(JSON.stringify(r), {
                     status: 200,
@@ -240,6 +255,7 @@ Bun.serve({
                     }),
                 })
             }
+
             // frontend
             if (p == "/signup") {
                 if (db.query('select * from setting where k="signup"').get().v != 'true') {
@@ -255,10 +271,10 @@ Bun.serve({
                     uuid: crypto.randomUUID().replaceAll('-', ''),
                     username: j.username,
                     password: password,
-                    expired_at: now(),
+                    expired_at: lib.now(),
                     traffic_max: 0,
                     traffic_now: 0,
-                    created_at: now(),
+                    created_at: lib.now(),
                 })
                 return new Response(JSON.stringify(r), {
                     status: 200,
@@ -329,7 +345,7 @@ Bun.serve({
                 if (!u) {
                     throw 'invalid import link, try to contact your provider'
                 }
-                if (u.expired_at < now()) {
+                if (u.expired_at < lib.now()) {
                     throw `expired user ${u.id}`
                 }
                 var s = db.query('select * from setting where k="import_dislike_browser"').get().v
