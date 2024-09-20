@@ -71,5 +71,8 @@ insert into setting(k, v) values('contact', 'https://t.me/xxx')
     m('init hidden import for browser setting', `
 insert into setting(k, v) values('import_dislike_browser', 'false')
 `)
+    m('init site description setting', `
+insert into setting(k, v) values('site_description', 'Site Description')
+`)
 }
 export default migration;

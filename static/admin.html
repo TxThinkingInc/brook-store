@@ -8,7 +8,7 @@
     <script type="module" src="https://cdn.jsdelivr.net/npm/beercss@3.7.8/dist/cdn/beer.min.js"></script>
     <script type="module" src="https://cdn.jsdelivr.net/npm/material-dynamic-colors@1.1.2/dist/cdn/material-dynamic-colors.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@3.4.23/dist/vue.global.prod.js"></script>
-    <title>SITE_NAME</title>
+    <title>Brook</title>
     <script>
         window.addEventListener("DOMContentLoaded", async (e) => {
             var app = {
@@ -27,23 +27,32 @@
                 },
                 watch: {
                     tab: async function () {
-                        if (this.tab == 'user') {
-                            this.user = null
-                            await this.getusers()
-                        }
-                        if (this.tab == 'brook') {
-                            this.brook = null
-                            await this.getbrooks()
-                        }
-                        if (this.tab == 'task') {
-                            this.task = null
-                            await this.gettasks()
+                        try {
+                            if (this.tab == 'user') {
+                                this.user = null
+                                await this.getusers()
+                            }
+                            if (this.tab == 'brook') {
+                                this.brook = null
+                                await this.getbrooks()
+                            }
+                            if (this.tab == 'task') {
+                                this.task = null
+                                await this.gettasks()
+                            }
+                        } catch (e) {
+                            alert(`${e}`)
                         }
                     },
                 },
                 async mounted() {
-                    await this.getbrooks()
-                    await this.getsettings()
+                    try {
+                        await this.getbrooks()
+                        await this.getsettings()
+                        document.title = this.settings.site_name ? this.settings.site_name.v : ''
+                    } catch (e) {
+                        alert(`${e}`)
+                    }
                 },
                 methods: {
                     async getusers() {
@@ -281,6 +290,10 @@
             <i>badge</i>
             <div>Site Name</div>
         </a>
+        <a @click="this.tab='site_description'">
+            <i>description</i>
+            <div>Site Description</div>
+        </a>
         <a @click="this.tab='signup'">
             <i>how_to_reg</i>
             <div>Signup</div>
@@ -320,8 +333,8 @@
                 <div style="height:30px;"></div>
                 <div class="row" v-for="v in brooks">
                     <i class="light-green-text">dns</i>
-                    <div class="max">{{nameoflink(v.link)}}</div>
-                    <div class="max">{{v.link}}</div>
+                    <h6>{{nameoflink(v.link)}}</h6>
+                    <div class="max" style="overflow-x:scroll;padding-top:12px;white-space: nowrap"><span>{{v.link}}</span></div>
                     <a @click="removebrook(v)">
                         <i>delete</i>
                     </a>
@@ -364,8 +377,8 @@
                 <div style="height:30px;"></div>
                 <div class="row" v-for="v in users">
                     <i class="light-green-text">face</i>
-                    <div class="max">{{v.username}}</div>
-                    <div class="max">{{v.traffic_now}}/{{v.traffic_max}}M {{new Date(v.expired_at*1000).toLocaleString()}}</div>
+                    <h6>{{v.username}}</h6>
+                    <div class="max" style="overflow-x:scroll;padding-top:12px;white-space: nowrap">{{v.traffic_now}}/{{v.traffic_max}}M {{new Date(v.expired_at*1000).toLocaleString()}}</div>
                     <a :href="'/import?uuid='+v.uuid">
                         <i>link</i>
                     </a>
@@ -423,7 +436,7 @@
                 <div style="height:30px;"></div>
                 <div class="row" v-for="v in tasks">
                     <i class="light-green-text">schedule</i>
-                    <div class="max">{{v.server}}</div>
+                    <h6>{{v.server}}</h6>
                     <div class="max">{{v.serverlog_path}} {{v.pid_path}}</div>
                     <a @click="removetask(v)">
                         <i>delete</i>
@@ -496,6 +509,18 @@
                 </div>
                 <div style="height:30px;"></div>
                 <button @click="updatesetting(settings.site_name)">Update</button>
+            </div>
+        </div>
+        <div v-if="tab=='site_description'" style="padding:30px;">
+            <div style="display:flex;flex-direction:column">
+                <h3>Site Description</h3>
+                <div style="height:30px;"></div>
+                <div class="field label border">
+                    <input type="text" v-model="settings.site_description.v">
+                    <label>Site Description</label>
+                </div>
+                <div style="height:30px;"></div>
+                <button @click="updatesetting(settings.site_description)">Update</button>
             </div>
         </div>
         <div v-if="tab=='signup'" style="padding:30px;">

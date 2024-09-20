@@ -50,8 +50,6 @@ Bun.serve({
                     }
                 }
                 var html = new TextDecoder().decode(await static_file("static/index.html"))
-                var site_name = db.query('select * from setting where k="site_name"').get().v
-                html = html.replaceAll('SITE_NAME', site_name)
                 return new Response(html, {
                     status: 200,
                     headers: new Headers({
@@ -67,13 +65,11 @@ Bun.serve({
                         return new Response(null, { status: 304 })
                     }
                 }
-                var site_name = db.query('select * from setting where k="site_name"').get().v
                 var html = new TextDecoder().decode(await static_file("static/admin.html"))
-                html = html.replaceAll('SITE_NAME', site_name)
                 return new Response(html, {
                     status: 200,
                     headers: new Headers({
-                        "ETag": "https://brook.app",
+                        "ETag": "20240920",
                         "Content-Type": "text/html; charset=uff-8",
                     }),
                 })
@@ -313,9 +309,10 @@ Bun.serve({
                     }),
                 })
             }
-            if (p == "/getcontact") {
-                var r = db.query(`select * from setting where k='contact'`).get()
-                return new Response(JSON.stringify(r), {
+            if (p == "/getsomesettings") {
+                var l = db.query(`select * from setting`).all()
+                l = l.filter(v => ['site_name', 'site_description', 'contact'].indexOf(v.k) != -1)
+                return new Response(JSON.stringify(l), {
                     status: 200,
                     headers: new Headers({
                         "Content-Type": "application/json",
