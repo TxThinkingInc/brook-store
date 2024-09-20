@@ -9,16 +9,13 @@ var task = function(db) {
         for (var i = 0; i < l.length; i++) {
             var v = l[i]
             try {
-                var password = ''
                 if (v.password) {
-                    password = `-p '${v.password}'`
+                    await $`sshexec -s '${v.server}' -u '${v.user}' -p '${v.password}' --download '${v.serverlog_path}' --to '/tmp/_' --timeout 600`
                 }
-                var sshkey = ''
                 if (v.sshkey) {
                     await fs.writeFile('/tmp/sshkey', v.sshkey)
-                    sshkey = `-k '/tmp/sshkey'`
+                    await $`sshexec -s '${v.server}' -u '${v.user}' -k /tmp/sshkey --download '${v.serverlog_path}' --to '/tmp/_' --timeout 600`
                 }
-                await $`sshexec -s '${v.server}' -u '${v.user}' ${password} ${sshkey} --download '${v.serverlog_path}' --to '/tmp/_' --timeout 600`
                 var m = {}
                 var s = (await fs.readFile("/tmp/_", { encoding: 'utf8' })).trim()
                 if (!s) {
@@ -35,9 +32,19 @@ var task = function(db) {
                     await lib.setImmediatePromise()
                 }
 
-                await $`sshexec -s '${v.server}' -u '${v.user}' ${password} ${sshkey} --download '${v.pid_path}' --to '/tmp/_' --timeout 60`
+                if (v.password) {
+                    await $`sshexec -s '${v.server}' -u '${v.user}' -p '${v.password}' --download '${v.pid_path}' --to '/tmp/_' --timeout 60`
+                }
+                if (v.sshkey) {
+                    await $`sshexec -s '${v.server}' -u '${v.user}' -k /tmp/sshkey --download '${v.pid_path}' --to '/tmp/_' --timeout 60`
+                }
                 var s = (await fs.readFile("/tmp/_", { encoding: 'utf8' })).trim()
-                await $`sshexec -s '${v.server}' -u '${v.user}' ${password} ${sshkey} -c 'kill -USR1 ${s}' --timeout 60`
+                if (v.password) {
+                    await $`sshexec -s '${v.server}' -u '${v.user}' -p '${v.password}' -c 'kill -USR1 ${s}' --timeout 60`
+                }
+                if (v.sshkey) {
+                    await $`sshexec -s '${v.server}' -u '${v.user}' -k /tmp/sshkey -c 'kill -USR1 ${s}' --timeout 60`
+                }
             } catch (e) {
                 console.log(e)
             }
