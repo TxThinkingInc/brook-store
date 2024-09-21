@@ -1,15 +1,15 @@
 import os from 'node:os';
 import sqlite from './lib/sqlite'
 import migration from './migration'
-import task from './task'
 import bundled from './bundled.js';
 import * as fs from 'node:fs/promises';
 import lib from './lib/lib.js'
 import crypto from 'node:crypto';
 
-var db = sqlite(os.homedir() + "/.brook.db")
+var db = sqlite(os.homedir() + "/.brook.db", true)
 migration(db)
 task(db)
+
 var user_api_path = db.query("select * from setting where k='user_api_path'").get().v
 var index_html = new TextDecoder().decode(bundled("static/index.html"))
 var hash = crypto.createHash('md5');
@@ -361,7 +361,7 @@ Bun.serve({
                 }).join("\n")
                 return new Response(s)
             }
-            throw 'hacking'
+            return new Response(null, { status: 404 });
         } catch (e) {
             return new Response(e.toString(), { status: 400 });
         }

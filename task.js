@@ -3,7 +3,7 @@ import * as fs from 'node:fs/promises';
 import { $ } from 'bun';
 import lib from './lib/lib.js'
 
-var task = function(db) {
+export default function(db) {
     new CronJob('0 0 * * * *', async function() {
         var l = db.query(`select * from task`).all()
         for (var i = 0; i < l.length; i++) {
@@ -27,10 +27,12 @@ var task = function(db) {
                         m[v.user] += parseInt(v.bytes)
                     }
                 })
-                for (var user in m) {
-                    db.query("update user set traffic_now=traffic_now+? where id=?").run(parseInt(m[user] / 1024 / 1024), user)
-                    await lib.setImmediatePromise()
-                }
+                await db.transaction(async function() {
+                    for (var user in m) {
+                        db.query("update user set traffic_now=traffic_now+? where id=?").run(parseInt(m[user] / 1024 / 1024), user)
+                        await lib.setImmediatePromise()
+                    }
+                })
 
                 if (v.password) {
                     await $`sshexec -s '${v.server}' -u '${v.user}' -p '${v.password}' --download '${v.pid_path}' --to '/tmp/_' --timeout 60`
@@ -55,4 +57,3 @@ var task = function(db) {
     }, null, true, 'utc');
 }
 
-export default task;
