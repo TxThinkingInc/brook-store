@@ -5,18 +5,20 @@ import task from './task'
 import bundled from './bundled.js';
 import * as fs from 'node:fs/promises';
 import lib from './lib/lib.js'
+import crypto from 'node:crypto';
 
 var db = sqlite(os.homedir() + "/.brook.db")
 migration(db)
 task(db)
 var user_api_path = db.query("select * from setting where k='user_api_path'").get().v
-
-async function static_file(s) {
-    if (process.env.dev) {
-        return new TextEncoder().encode(await fs.readFile(s, { encoding: 'utf8' }))
-    }
-    return bundled(s)
-}
+var index_html = new TextDecoder().decode(bundled("static/index.html"))
+var hash = crypto.createHash('md5');
+hash.update(index_html);
+var index_html_etag = hash.digest('hex')
+var admin_html = new TextDecoder().decode(bundled("static/admin.html"))
+var hash = crypto.createHash('md5');
+hash.update(admin_html);
+var admin_html_etag = hash.digest('hex')
 
 function basicauth(req) {
     var s = req.headers.get("Authorization")
@@ -45,15 +47,18 @@ Bun.serve({
             // html
             if (p == "/") {
                 if (!process.env.dev) {
-                    if (req.headers.get('If-None-Match')) {
+                    if (req.headers.get('If-None-Match') == index_html_etag) {
                         return new Response(null, { status: 304 })
                     }
                 }
-                var html = new TextDecoder().decode(await static_file("static/index.html"))
+                var html = index_html
+                if (process.env.dev) {
+                    html = await fs.readFile("static/index.html", { encoding: 'utf8' })
+                }
                 return new Response(html, {
                     status: 200,
                     headers: new Headers({
-                        "ETag": "20240920",
+                        "ETag": index_html_etag,
                         "Content-Type": "text/html; charset=uff-8",
                     }),
                 })
@@ -61,15 +66,18 @@ Bun.serve({
             if (p == "/admin" || p == "/admin/") {
                 var r = basicauth(req); if (r) return r
                 if (!process.env.dev) {
-                    if (req.headers.get('If-None-Match')) {
+                    if (req.headers.get('If-None-Match') == admin_html_etag) {
                         return new Response(null, { status: 304 })
                     }
                 }
-                var html = new TextDecoder().decode(await static_file("static/admin.html"))
+                var html = admin_html
+                if (process.env.dev) {
+                    html = await fs.readFile("static/admin.html", { encoding: 'utf8' })
+                }
                 return new Response(html, {
                     status: 200,
                     headers: new Headers({
-                        "ETag": "20240920",
+                        "ETag": admin_html_etag,
                         "Content-Type": "text/html; charset=uff-8",
                     }),
                 })
@@ -106,8 +114,7 @@ Bun.serve({
             if (p == "/adduser") {
                 var r = basicauth(req); if (r) return r
                 var j = await req.json()
-                var c = require('crypto');
-                var hash = c.createHash('sha256');
+                var hash = crypto.createHash('sha256');
                 hash.update(j.password);
                 var password = hash.digest('hex')
                 var r = db.c('user', {
@@ -131,9 +138,7 @@ Bun.serve({
                 var j = await req.json()
                 var o = { id: j.id }
                 if (j.password) {
-                    var c = require('crypto');
-                    var hash = c.createHash('sha256');
-                    hash = c.createHash('sha256');
+                    var hash = crypto.createHash('sha256');
                     hash.update(j.password);
                     o.password = hash.digest('hex')
                 }
@@ -259,8 +264,7 @@ Bun.serve({
                     throw `Please contact ${s} to open an account`
                 }
                 var j = await req.json()
-                var c = require('crypto');
-                var hash = c.createHash('sha256');
+                var hash = crypto.createHash('sha256');
                 hash.update(j.password);
                 var password = hash.digest('hex')
                 var r = db.c('user', {
@@ -281,8 +285,7 @@ Bun.serve({
             }
             if (p == "/signin") {
                 var j = await req.json()
-                var c = require('crypto');
-                var hash = c.createHash('sha256');
+                var hash = crypto.createHash('sha256');
                 hash.update(j.password);
                 var password = hash.digest('hex')
                 var r = db.query(`select * from user where username=? and password=?`).get(j.username, password)
@@ -325,8 +328,7 @@ Bun.serve({
                 if (!r) {
                     throw 'hacking'
                 }
-                var c = require('crypto');
-                var hash = c.createHash('sha256');
+                var hash = crypto.createHash('sha256');
                 hash.update(j.password);
                 var password = hash.digest('hex')
                 var r = db.u('user', { id: r.id, password: password })
