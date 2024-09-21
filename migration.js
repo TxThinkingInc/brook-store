@@ -63,7 +63,7 @@ insert into setting(k, v) values('adminpassword', 'brook')
 insert into setting(k, v) values('site_name', 'Site Name')
 `)
     m('init signup setting', `
-insert into setting(k, v) values('signup', 'true')
+insert into setting(k, v) values('signup', 'false')
 `)
     m('init contact setting', `
 insert into setting(k, v) values('contact', 'https://t.me/xxx')

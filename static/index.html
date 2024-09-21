@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link href="https://cdn.jsdelivr.net/npm/beercss@3.7.8/dist/cdn/beer.min.css" rel="stylesheet" />
     <script type="module" src="https://cdn.jsdelivr.net/npm/beercss@3.7.8/dist/cdn/beer.min.js"></script>
-    <script type="module" src="https://cdn.jsdelivr.net/npm/material-dynamic-colors@1.1.2/dist/cdn/material-dynamic-colors.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@3.4.23/dist/vue.global.prod.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
     <title>Brook</title>
@@ -168,16 +167,16 @@
     <main v-if="!user.uuid && !mobile">
         <div class="grid no-space">
             <div class="s6" style="height: calc(100dvh - 64px);">
-                <div style="height:30px;"></div>
-                <div style="padding:60px 30px 0px 30px;">
+                <div style="height:90px;"></div>
+                <div style="padding:0px 16px">
                     <h1 class="ml9">
                         <span class="text-wrapper">
                             <span class="letters">{{settings.site_description ? settings.site_description.v : ''}}</span>
                         </span>
                     </h1>
                 </div>
-                <div style="height:30px;"></div>
-                <div style="display: flex;flex-direction:row;justify-content:center;">
+                <div style="height:90px;"></div>
+                <div style="display: flex;flex-direction:row;padding-left:10px;">
                     <a class="chip" style="color:white;border-color: white;">$3/100G/month</a>
                     <a class="chip" style="color:white;border-color: white;">$5/200G/month</a>
                     <a class="chip" style="color:white;border-color: white;">$10/500G/month</a>
@@ -210,7 +209,7 @@
     <main v-if="!user.uuid && mobile">
         <div>
             <div style="height:30px;"></div>
-            <div style="padding:0px 30px 0px 30px;">
+            <div style="padding:0px 16px;">
                 <h6 class="ml9">
                     <span class="text-wrapper">
                         <span class="letters">{{settings.site_description ? settings.site_description.v : ''}}</span>
@@ -218,10 +217,10 @@
                 </h6>
             </div>
             <div style="height:30px;"></div>
-            <div style="display: flex;flex-direction:row;justify-content:center;">
-                <a class="chip" style="color:white;border-color: white;">$3/100G/month</a>
-                <a class="chip" style="color:white;border-color: white;">$5/200G/month</a>
-                <a class="chip" style="color:white;border-color: white;">$10/500G/month</a>
+            <div style="display: flex;flex-direction:row;justify-content:center;padding:0px 10px">
+                <a class="chip" style="color:white;border-color: white;font-size:12px;">$3/100G/month</a>
+                <a class="chip" style="color:white;border-color: white;font-size:12px;">$5/200G/month</a>
+                <a class="chip" style="color:white;border-color: white;font-size:12px;">$10/500G/month</a>
             </div>
         </div>
         <div>
@@ -247,51 +246,120 @@
             </div>
         </div>
     </main>
-    <main class="responsive" v-if="user.uuid">
+    <main v-if="user.uuid" :style="'padding:0px '+(mobile?'0px':'300px')">
         <div style="height:30px;"></div>
-        <div style="display: flex;flex-direction:row;justify-content:center;">
-            <a class="chip" style="color:white;border-color: white;">$3/100G/month</a>
-            <a class="chip" style="color:white;border-color: white;">$5/200G/month</a>
-            <a class="chip" style="color:white;border-color: white;">$10/500G/month</a>
+        <div style="display: flex;flex-direction:row;justify-content:center;padding:0px 10px">
+            <a class="chip" style="color:white;border-color: white;font-size:12px;">$3/100G/month</a>
+            <a class="chip" style="color:white;border-color: white;font-size:12px;">$5/200G/month</a>
+            <a class="chip" style="color:white;border-color: white;font-size:12px;">$10/500G/month</a>
         </div>
         <div style="height:30px;"></div>
-        <div style="display:flex;flex-direction: column;align-items:center;padding:0px 10px;">
+        <div style="display:flex;flex-direction: column;align-items:center;padding:0px 16px;">
             <article class="secondary-container" style="background-color:white !important;color:black !important">
                 <h5>{{user.username}}</h5>
                 <div style="height:10px;"></div>
                 <div>{{new Date(user.expired_at*1000).toLocaleString()}}</div>
                 <div style="height:10px;"></div>
-                <div>{{user.traffic_now}}/{{user.traffic_max}}M</div>
+                <progress :value="user.traffic_now" :max="user.traffic_max" style="background-color:#cfbcff;color:#4f378a;"></progress>
+                <div><small>{{user.traffic_now}}/{{user.traffic_max}}M/month</small></div>
                 <div style="height:10px;"></div>
                 <div style="text-align: center;word-break: break-all;">{{origin+'/import?uuid='+user.uuid}}</div>
             </article>
         </div>
         <div style="height:30px;"></div>
-        <div style="display:flex;flex-direction: row;justify-content:center">
-            <details>
-                <summary class="none">
-                    <article class="round primary no-elevate">
-                        <nav>
-                            <div class="max">Update Password</div>
-                            <i>expand_more</i>
-                        </nav>
-                    </article>
-                </summary>
-                <article class="secondary-container">
-                    <div style="height:10px;"></div>
-                    <div class="field label border">
-                        <input type="text" v-model="password">
-                        <label>New Password</label>
-                    </div>
-                    <div style="display: flex;justify-content:center;">
-                        <button @click="updatepassword">Update</button>
-                    </div>
-                </article>
-            </details>
+        <div style="padding:0px 16px;">
+            <div style="height:30px;"></div>
+            <div v-if="!mobile" style="display: flex;justify-content:space-between;">
+                <a class="button" href="https://apps.apple.com/us/app/brook-network-tool/id1216002642">
+                    <i>phone_iphone</i>
+                    <span>iOS</span>
+                </a>
+                <a class="button" href="https://github.com/txthinking/brook/releases/latest/download/Brook.apk">
+                    <i>phone_android</i>
+                    <span>Android</span>
+                </a>
+                <a class="button" href="https://apps.apple.com/us/app/brook-network-tool/id1216002642">
+                    <i>desktop_mac</i>
+                    <span>macOS</span>
+                </a>
+                <a class="button" href="https://github.com/txthinking/brook/releases/latest/download/Brook.msix">
+                    <i>desktop_windows</i>
+                    <span>Windows</span>
+                </a>
+                <a class="button" href="https://github.com/txthinking/brook/releases/latest/download/Brook.bin">
+                    <i>computer</i>
+                    <span>Linux</span>
+                </a>
+            </div>
+            <div v-if="mobile" style="display: flex;justify-content:space-between;">
+                <a class="button" href="https://apps.apple.com/us/app/brook-network-tool/id1216002642">
+                    <i>phone_iphone</i>
+                    <span>iOS</span>
+                </a>
+                <a class="button" href="https://github.com/txthinking/brook/releases/latest/download/Brook.apk">
+                    <i>phone_android</i>
+                    <span>Android</span>
+                </a>
+            </div>
+            <div v-if="mobile" style="height:30px;"></div>
+            <div v-if="mobile" style="display: flex;justify-content:space-around;">
+                <a class="button" href="https://apps.apple.com/us/app/brook-network-tool/id1216002642">
+                    <i>desktop_mac</i>
+                    <span>macOS</span>
+                </a>
+                <a class="button" href="https://github.com/txthinking/brook/releases/latest/download/Brook.msix">
+                    <i>desktop_windows</i>
+                    <span>Windows</span>
+                </a>
+                <a class="button" href="https://github.com/txthinking/brook/releases/latest/download/Brook.bin">
+                    <i>computer</i>
+                    <span>Linux</span>
+                </a>
+            </div>
+            <div style="height:30px;"></div>
+            <ul>
+                <li><a href="https://www.txthinking.com/talks/articles/msix-brook-en.article">How to install Brook on Windows?</a></li>
+                <li><a href="https://www.txthinking.com/talks/articles/linux-app-brook-en.article">How to install Brook on Linux?</a></li>
+            </ul>
         </div>
         <div style="height:30px;"></div>
-        <div style="text-align: center;color:white;">Download Brook client from <a href="https://brook.app" target="_blank">https://brook.app</a> and import your link. Note that sharing your link is equivalent to sharing your username and password.</div>
-        <div style="text-align: center;color:white;">If you have any questions, the only way to contact us is: {{settings.contact ? settings.contact.v : ''}}</div>
+        <div style="padding:0px 16px;">
+            <h3>How to import link</h3>
+            <div style="height:30px;"></div>
+            <ol>
+                <li>Open Brook</li>
+                <li>Tap <i>playlist_add_circle</i> on top right</li>
+                <li>Paste your link <code>{{origin+'/import?uuid='+user.uuid}}</code></li>
+                <li>Tap <code>Import</code> button</li>
+            </ol>
+        </div>
+        <div style="height:30px;"></div>
+        <div style="padding:0px 16px;">
+            <h3>Documentation</h3>
+            <div style="height:30px;"></div>
+            <a href="https://brook.app">https://brook.app</a>
+        </div>
+        <div style="height:30px;"></div>
+        <div style="padding:0px 16px;">
+            <h3>Help</h3>
+            <div style="height:30px;"></div>
+            <a :href="settings.contact ? settings.contact.v : ''">{{settings.contact ? settings.contact.v : ''}}</a>
+        </div>
+        <div style="height:30px;"></div>
+        <div style="padding:0px 16px;">
+            <h3>Password</h3>
+            <div style="height:30px;"></div>
+            <div style="display: flex;">
+                <div class="field label border">
+                    <input type="text" v-model="password">
+                    <label>New Password</label>
+                </div>
+            </div>
+            <div style="display: flex;">
+                <button class="border small-round" @click="updatepassword">Update</button>
+            </div>
+        </div>
+        <div style="height:30px;"></div>
     </main>
 </body>
 
