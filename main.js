@@ -5,6 +5,7 @@ import bundled from './bundled.js';
 import * as fs from 'node:fs/promises';
 import lib from './lib/lib.js'
 import crypto from 'node:crypto';
+import task from './task.js'
 
 var db = sqlite(os.homedir() + "/.brook.db", true)
 migration(db)
@@ -32,6 +33,22 @@ function basicauth(req) {
                 "WWW-Authenticate": 'Basic realm="/"',
             }),
         })
+    }
+}
+async function recaptchaauth(req) {
+    var k = db.query('select * from setting where k="reCAPTCHAKey"').get().v
+    var s = db.query('select * from setting where k="reCAPTCHASecret"').get().v
+    if (k && s) {
+        var r = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({ secret: s, response: new URL(req.url).searchParams.get('recaptcha_token') }).toString(),
+        })
+        if (!(await r.json()).success) {
+            throw 'Are you bot?'
+        }
     }
 }
 
@@ -259,6 +276,7 @@ Bun.serve({
 
             // frontend
             if (p == "/signup") {
+                await recaptchaauth(req)
                 if (db.query('select * from setting where k="signup"').get().v != 'true') {
                     var s = db.query('select * from setting where k="contact"').get().v
                     throw `Please contact ${s} to open an account`
@@ -284,6 +302,7 @@ Bun.serve({
                 })
             }
             if (p == "/signin") {
+                await recaptchaauth(req)
                 var j = await req.json()
                 var hash = crypto.createHash('sha256');
                 hash.update(j.password);
@@ -314,7 +333,7 @@ Bun.serve({
             }
             if (p == "/getsomesettings") {
                 var l = db.query(`select * from setting`).all()
-                l = l.filter(v => ['site_name', 'site_description', 'contact'].indexOf(v.k) != -1)
+                l = l.filter(v => ['site_name', 'site_description', 'contact', 'reCAPTCHAKey'].indexOf(v.k) != -1)
                 return new Response(JSON.stringify(l), {
                     status: 200,
                     headers: new Headers({

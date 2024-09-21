@@ -297,6 +297,10 @@
             <i>how_to_reg</i>
             <div>Signup</div>
         </a>
+        <a @click="this.tab='reCAPTCHA'">
+            <i>robot</i>
+            <div>reCAPTCHA</div>
+        </a>
         <a @click="this.tab='import_dislike_browser'">
             <i>visibility</i>
             <div>Import Visable</div>
@@ -354,6 +358,10 @@
         <a @click="this.tab='signup'">
             <i>how_to_reg</i>
             <div>Signup</div>
+        </a>
+        <a @click="this.tab='reCAPTCHA'">
+            <i>robot</i>
+            <div>reCAPTCHA</div>
         </a>
         <a @click="this.tab='import_dislike_browser'">
             <i>visibility</i>
@@ -436,7 +444,7 @@
                     <i class="light-green-text">face</i>
                     <h6 style="width:30%;overflow-x:scroll;white-space: nowrap">{{v.username}}</h6>
                     <div class="max" style="overflow-x:scroll;white-space: nowrap">{{v.traffic_now}}/{{v.traffic_max}}M {{new Date(v.expired_at*1000).toLocaleString()}}</div>
-                    <a :href="'/import?uuid='+v.uuid">
+                    <a :href="'/import?uuid='+v.uuid" target="_blank">
                         <i>link</i>
                     </a>
                     <a @click="edituser(v)">
@@ -593,6 +601,24 @@
                 </div>
                 <div style="height:30px;"></div>
                 <button @click="updatesetting(settings.signup)">Update</button>
+            </div>
+        </div>
+        <div v-if="tab=='reCAPTCHA'" style="padding:30px;">
+            <div style="display:flex;flex-direction:column">
+                <h3>reCAPTCHA</h3>
+                <div style="height:30px;"></div>
+                <div style="text-align: center;">This can prevent users from maliciously invoking signup and signin.</div>
+                <div style="height:30px;"></div>
+                <div class="field label border">
+                    <input type="text" v-model="settings.reCAPTCHAKey.v">
+                    <label>Google reCAPTCHA v3 key</label>
+                </div>
+                <div class="field label border">
+                    <input type="text" v-model="settings.reCAPTCHASecret.v">
+                    <label>Google reCAPTCHA v3 secret</label>
+                </div>
+                <div style="height:30px;"></div>
+                <button @click="updatesetting(settings.reCAPTCHAKey, settings.reCAPTCHASecret)">Update</button>
             </div>
         </div>
         <div v-if="tab=='import_dislike_browser'" style="padding:30px;">

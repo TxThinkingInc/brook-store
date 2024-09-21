@@ -63,7 +63,7 @@ insert into setting(k, v) values('adminpassword', 'brook')
 insert into setting(k, v) values('site_name', 'Site Name')
 `)
     m('init signup setting', `
-insert into setting(k, v) values('signup', 'false')
+insert into setting(k, v) values('signup', 'true')
 `)
     m('init contact setting', `
 insert into setting(k, v) values('contact', 'https://t.me/xxx')
@@ -73,6 +73,12 @@ insert into setting(k, v) values('import_dislike_browser', 'false')
 `)
     m('init site description setting', `
 insert into setting(k, v) values('site_description', 'Site Description')
+`)
+    m('init reCAPTCHAKey setting', `
+insert into setting(k, v) values('reCAPTCHAKey', '')
+`)
+    m('init reCAPTCHASecret setting', `
+insert into setting(k, v) values('reCAPTCHASecret', '')
 `)
 }
 export default migration;
