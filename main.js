@@ -248,6 +248,36 @@ Bun.serve({
                     }),
                 })
             }
+            if (p == "/addproduct") {
+                var r = basicauth(req); if (r) return r
+                var j = await req.json()
+                var r = db.c('product', {
+                    name: j.name,
+                    pay_url: j.pay_url,
+                })
+                return new Response(JSON.stringify(r), {
+                    status: 200,
+                    headers: new Headers({
+                        "Content-Type": "application/json",
+                    }),
+                })
+            }
+            if (p == "/removeproduct") {
+                var r = basicauth(req); if (r) return r
+                var j = await req.json()
+                db.d('product', j.id)
+                return Response()
+            }
+            if (p == "/getproducts") {
+                var r = basicauth(req); if (r) return r
+                var l = db.query(`select * from product`).all()
+                return new Response(JSON.stringify(l), {
+                    status: 200,
+                    headers: new Headers({
+                        "Content-Type": "application/json",
+                    }),
+                })
+            }
             if (p == "/getsettings") {
                 var r = basicauth(req); if (r) return r
                 var l = db.query(`select * from setting`).all()
@@ -272,6 +302,23 @@ Bun.serve({
                         "Content-Type": "application/json",
                     }),
                 })
+            }
+            if (p == "/callback/" + user_api_path) {
+                var r = db.query('select * from user where id=?').get(q('user_id'))
+                if (!r) {
+                    throw `invalid user_id`
+                }
+                if (r.expired_at < lib.now()) {
+                    r.expired_at = lib.now()
+                }
+                r.expired_at += parseInt(q('duration'))
+                r.traffic_max = parseInt(q('traffic_max'))
+                db.u('user', {
+                    id: r.id,
+                    expired_at: r.expired_at,
+                    traffic_max: r.traffic_max,
+                })
+                return new Response()
             }
 
             // frontend
@@ -334,6 +381,15 @@ Bun.serve({
             if (p == "/getsomesettings") {
                 var l = db.query(`select * from setting`).all()
                 l = l.filter(v => ['site_name', 'site_description', 'contact', 'reCAPTCHAKey'].indexOf(v.k) != -1)
+                return new Response(JSON.stringify(l), {
+                    status: 200,
+                    headers: new Headers({
+                        "Content-Type": "application/json",
+                    }),
+                })
+            }
+            if (p == "/getfeproducts") {
+                var l = db.query(`select * from product`).all()
                 return new Response(JSON.stringify(l), {
                     status: 200,
                     headers: new Headers({

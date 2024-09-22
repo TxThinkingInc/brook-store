@@ -80,5 +80,18 @@ insert into setting(k, v) values('reCAPTCHAKey', '')
     m('init reCAPTCHASecret setting', `
 insert into setting(k, v) values('reCAPTCHASecret', '')
 `)
+    m('create product table', `
+create table product(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name text not null,
+    pay_url text not null
+)
+`)
+    m('init product 1', `
+insert into product(name, pay_url) values('$3.5 for month (100G/month)', 'https://www.your-pay-url.com')
+`)
+    m('init product 2', `
+insert into product(name, pay_url) values('$30 for year (100G/month)', 'https://www.your-pay-url.com')
+`)
 }
 export default migration;
