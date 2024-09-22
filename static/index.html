@@ -22,6 +22,7 @@
                         origin: location.origin,
                         mobile: /Android|iPhone/i.test(navigator.userAgent),
                         recaptcha_token: null,
+                        signing: false,
                     };
                 },
                 async mounted() {
@@ -79,6 +80,7 @@
                 },
                 methods: {
                     async signup() {
+                        this.signing = true
                         try {
                             if (this.settings.reCAPTCHAKey && this.settings.reCAPTCHAKey.v && !this.recaptcha_token) {
                                 throw 'reCAPTCHA js is loading, wait or refresh'
@@ -89,7 +91,6 @@
                             })
                             if (res.status != 200) {
                                 throw (await res.text())
-                                return
                             }
                             this.user = await res.json();
                             localStorage.setItem("uuid", this.user.uuid);
@@ -97,8 +98,10 @@
                         } catch (e) {
                             alert(`${e}`)
                         }
+                        this.signing = false
                     },
                     async signin() {
+                        this.signing = true
                         try {
                             if (this.settings.reCAPTCHAKey && this.settings.reCAPTCHAKey.v && !this.recaptcha_token) {
                                 throw 'reCAPTCHA js is loading, wait or refresh'
@@ -109,7 +112,6 @@
                             })
                             if (res.status != 200) {
                                 throw (await res.text())
-                                return
                             }
                             this.user = await res.json();
                             localStorage.setItem("uuid", this.user.uuid);
@@ -117,6 +119,7 @@
                         } catch (e) {
                             alert(`${e}`)
                         }
+                        this.signing = false
                     },
                     async getuser() {
                         try {
@@ -126,7 +129,6 @@
                             })
                             if (res.status != 200) {
                                 throw (await res.text())
-                                return
                             }
                             this.user = await res.json();
                         } catch (e) {
@@ -175,7 +177,6 @@
                             })
                             if (res.status != 200) {
                                 throw (await res.text())
-                                return
                             }
                             alert('ok')
                         } catch (e) {
@@ -251,10 +252,13 @@
                             <input type="password" v-model="user.password">
                             <label>Password</label>
                         </div>
-                        <div style="display:flex;flex-direction:row;justify-content:center">
+                        <div v-if="!signing" style="display:flex;flex-direction:row;justify-content:center">
                             <button @click="signup" style="background-color:black !important;color:white !important">Signup</button>
                             <div style="width:30px;"></div>
                             <button @click="signin" style="background-color:black !important;color:white !important">Signin</button>
+                        </div>
+                        <div v-if="signing" style="display:flex;flex-direction:row;justify-content:center">
+                            <progress class="circle"></progress>
                         </div>
                     </article>
                 </div>
@@ -290,10 +294,13 @@
                         <input type="password" v-model="user.password">
                         <label>Password</label>
                     </div>
-                    <div style="display:flex;flex-direction:row;justify-content:center">
+                    <div v-if="!signing" style="display:flex;flex-direction:row;justify-content:center">
                         <button @click="signup" style="background-color:black !important;color:white !important">Signup</button>
                         <div style="width:30px;"></div>
                         <button @click="signin" style="background-color:black !important;color:white !important">Signin</button>
+                    </div>
+                    <div v-if="signing" style="display:flex;flex-direction:row;justify-content:center">
+                        <progress class="circle"></progress>
                     </div>
                 </article>
             </div>
