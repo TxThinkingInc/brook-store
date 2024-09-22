@@ -308,7 +308,7 @@ Bun.serve({
                 if (!r) {
                     throw `invalid user_id`
                 }
-                if (r.expired_at < lib.now()) {
+                if (r.traffic_max != parseInt(q('traffic_max')) || r.expired_at < lib.now()) {
                     r.expired_at = lib.now()
                 }
                 r.expired_at += parseInt(q('duration'))
