@@ -22,7 +22,7 @@
                         origin: location.origin,
                         mobile: /Android|iPhone/i.test(navigator.userAgent),
                         recaptcha_token: null,
-                        signing: false,
+                        ing: false,
                     };
                 },
                 async mounted() {
@@ -50,8 +50,7 @@
                             script.src = `https://www.recaptcha.net/recaptcha/api.js?render=${this.settings.reCAPTCHAKey.v}`;
                             document.head.appendChild(script);
                         }
-                        this.user.uuid = localStorage.getItem("uuid")
-                        if (this.user.uuid) {
+                        if (localStorage.getItem("uuid")) {
                             await this.getuser();
                         }
                         await this.getproducts();
@@ -79,53 +78,24 @@
                     }, 1000)
                 },
                 methods: {
-                    async signup() {
-                        this.signing = true
+                    async getsettings() {
                         try {
-                            if (this.settings.reCAPTCHAKey && this.settings.reCAPTCHAKey.v && !this.recaptcha_token) {
-                                throw 'reCAPTCHA js is loading, wait or refresh'
-                            }
-                            var res = await fetch("/signup?recaptcha_token=" + ((this.settings.reCAPTCHAKey && this.settings.reCAPTCHAKey.v) ? (await this.recaptcha_token()) : ''), {
-                                method: "POST",
-                                body: JSON.stringify(this.user),
-                            })
+                            var res = await fetch("/getsomesettings")
                             if (res.status != 200) {
                                 throw (await res.text())
                             }
-                            this.user = await res.json();
-                            localStorage.setItem("uuid", this.user.uuid);
-                            await this.getproducts();
+                            (await res.json()).forEach(v => {
+                                this.settings[v.k] = v;
+                            });
                         } catch (e) {
                             alert(`${e}`)
                         }
-                        this.signing = false
-                    },
-                    async signin() {
-                        this.signing = true
-                        try {
-                            if (this.settings.reCAPTCHAKey && this.settings.reCAPTCHAKey.v && !this.recaptcha_token) {
-                                throw 'reCAPTCHA js is loading, wait or refresh'
-                            }
-                            var res = await fetch("/signin?recaptcha_token=" + ((this.settings.reCAPTCHAKey && this.settings.reCAPTCHAKey.v) ? (await this.recaptcha_token()) : ''), {
-                                method: "POST",
-                                body: JSON.stringify(this.user),
-                            })
-                            if (res.status != 200) {
-                                throw (await res.text())
-                            }
-                            this.user = await res.json();
-                            localStorage.setItem("uuid", this.user.uuid);
-                            await this.getproducts();
-                        } catch (e) {
-                            alert(`${e}`)
-                        }
-                        this.signing = false
                     },
                     async getuser() {
                         try {
                             var res = await fetch("/getuser", {
                                 method: "POST",
-                                body: JSON.stringify(this.user),
+                                body: JSON.stringify({uuid: localStorage.getItem("uuid")}),
                             })
                             if (res.status != 200) {
                                 throw (await res.text())
@@ -155,21 +125,50 @@
                             alert(`${e}`)
                         }
                     },
-                    async getsettings() {
+                    async signup() {
+                        this.ing = true
                         try {
-                            var res = await fetch("/getsomesettings")
-                            if (res.status != 200) {
-                                alert(await res.text())
-                                return
+                            if (this.settings.reCAPTCHAKey && this.settings.reCAPTCHAKey.v && !this.recaptcha_token) {
+                                throw 'reCAPTCHA js is loading, wait or refresh'
                             }
-                            (await res.json()).forEach(v => {
-                                this.settings[v.k] = v;
-                            });
+                            var res = await fetch("/signup?recaptcha_token=" + ((this.settings.reCAPTCHAKey && this.settings.reCAPTCHAKey.v) ? (await this.recaptcha_token()) : ''), {
+                                method: "POST",
+                                body: JSON.stringify(this.user),
+                            })
+                            if (res.status != 200) {
+                                throw (await res.text())
+                            }
+                            this.user = await res.json();
+                            localStorage.setItem("uuid", this.user.uuid);
+                            await this.getproducts();
                         } catch (e) {
                             alert(`${e}`)
                         }
+                        this.ing = false
+                    },
+                    async signin() {
+                        this.ing = true
+                        try {
+                            if (this.settings.reCAPTCHAKey && this.settings.reCAPTCHAKey.v && !this.recaptcha_token) {
+                                throw 'reCAPTCHA js is loading, wait or refresh'
+                            }
+                            var res = await fetch("/signin?recaptcha_token=" + ((this.settings.reCAPTCHAKey && this.settings.reCAPTCHAKey.v) ? (await this.recaptcha_token()) : ''), {
+                                method: "POST",
+                                body: JSON.stringify(this.user),
+                            })
+                            if (res.status != 200) {
+                                throw (await res.text())
+                            }
+                            this.user = await res.json();
+                            localStorage.setItem("uuid", this.user.uuid);
+                            await this.getproducts();
+                        } catch (e) {
+                            alert(`${e}`)
+                        }
+                        this.ing = false
                     },
                     async updatepassword() {
+                        this.ing = true
                         try {
                             var res = await fetch("/updatepassword", {
                                 method: "POST",
@@ -178,10 +177,10 @@
                             if (res.status != 200) {
                                 throw (await res.text())
                             }
-                            alert('ok')
                         } catch (e) {
                             alert(`${e}`)
                         }
+                        this.ing = false
                     },
                     signout() {
                         localStorage.setItem("uuid", "");
@@ -233,9 +232,13 @@
                         </span>
                     </h1>
                 </div>
-                <div style="height:90px;"></div>
+                <div style="height:30px;"></div>
                 <div style="display: flex;flex-direction:row;padding-left:10px;flex-wrap:wrap">
                     <a v-for="v in products" class="chip" style="color:white;border-color: white;font-size:12px;margin-bottom:20px;">{{v.name}}</a>
+                </div>
+                <div style="height:30px;"></div>
+                <div style="padding-left:20px;">
+                    <blockquote>iOS / Android / macOS / Windows / Linux</blockquote>
                 </div>
             </div>
             <div class="s6">
@@ -252,12 +255,12 @@
                             <input type="password" v-model="user.password">
                             <label>Password</label>
                         </div>
-                        <div v-if="!signing" style="display:flex;flex-direction:row;justify-content:center">
+                        <div v-if="!ing" style="display:flex;flex-direction:row;justify-content:center">
                             <button @click="signup" style="background-color:black !important;color:white !important">Signup</button>
                             <div style="width:30px;"></div>
                             <button @click="signin" style="background-color:black !important;color:white !important">Signin</button>
                         </div>
-                        <div v-if="signing" style="display:flex;flex-direction:row;justify-content:center">
+                        <div v-if="ing" style="display:flex;flex-direction:row;justify-content:center">
                             <progress class="circle"></progress>
                         </div>
                     </article>
@@ -274,6 +277,10 @@
                         <span class="letters">{{settings.site_description ? settings.site_description.v : ''}}</span>
                     </span>
                 </h6>
+            </div>
+            <div style="height:30px;"></div>
+            <div style="display:flex;flex-direction: row;justify-content:center">
+                <blockquote>iOS / Android / macOS / Windows / Linux</blockquote>
             </div>
             <div style="height:30px;"></div>
             <div style="display: flex;flex-direction:row;justify-content:center;padding:0px 10px;flex-wrap:wrap">
@@ -294,12 +301,12 @@
                         <input type="password" v-model="user.password">
                         <label>Password</label>
                     </div>
-                    <div v-if="!signing" style="display:flex;flex-direction:row;justify-content:center">
+                    <div v-if="!ing" style="display:flex;flex-direction:row;justify-content:center">
                         <button @click="signup" style="background-color:black !important;color:white !important">Signup</button>
                         <div style="width:30px;"></div>
                         <button @click="signin" style="background-color:black !important;color:white !important">Signin</button>
                     </div>
-                    <div v-if="signing" style="display:flex;flex-direction:row;justify-content:center">
+                    <div v-if="ing" style="display:flex;flex-direction:row;justify-content:center">
                         <progress class="circle"></progress>
                     </div>
                 </article>
@@ -414,8 +421,11 @@
                     <label>New Password</label>
                 </div>
             </div>
-            <div style="display: flex;">
+            <div v-if="!ing" style="display: flex;">
                 <button class="border" @click="updatepassword">Update</button>
+            </div>
+            <div v-if="ing" style="display:flex;">
+                <progress class="circle"></progress>
             </div>
             <div style="height:30px;"></div>
             <div><small>Sharing your link is equivalent to sharing your password and entire account</small></div>

@@ -1,22 +1,22 @@
 import os from 'node:os';
-import sqlite from './lib/sqlite'
 import migration from './migration'
-import bundled from './bundled.js';
 import * as fs from 'node:fs/promises';
 import lib from './lib/lib.js'
 import crypto from 'node:crypto';
-import task from './task.js'
+import html from './html.bundle.js';
+import worker from './worker.bundle.js';
 
-var db = sqlite(os.homedir() + "/.brook.db", true)
+var db = lib.sqlite(os.homedir() + "/.brook.db", { wal: true })
 migration(db)
-task(db)
+
+lib.go(new TextDecoder().decode(worker("worker/task.worker.js")), null)
 
 var user_api_path = db.query("select * from setting where k='user_api_path'").get().v
-var index_html = new TextDecoder().decode(bundled("static/index.html"))
+var index_html = new TextDecoder().decode(html("html/index.html"))
 var hash = crypto.createHash('md5');
 hash.update(index_html);
 var index_html_etag = hash.digest('hex')
-var admin_html = new TextDecoder().decode(bundled("static/admin.html"))
+var admin_html = new TextDecoder().decode(html("html/admin.html"))
 var hash = crypto.createHash('md5');
 hash.update(admin_html);
 var admin_html_etag = hash.digest('hex')
@@ -68,11 +68,11 @@ Bun.serve({
                         return new Response(null, { status: 304 })
                     }
                 }
-                var html = index_html
+                var s = index_html
                 if (process.env.dev) {
-                    html = await fs.readFile("static/index.html", { encoding: 'utf8' })
+                    s = await fs.readFile("html/index.html", { encoding: 'utf8' })
                 }
-                return new Response(html, {
+                return new Response(s, {
                     status: 200,
                     headers: new Headers({
                         "ETag": index_html_etag,
@@ -87,11 +87,11 @@ Bun.serve({
                         return new Response(null, { status: 304 })
                     }
                 }
-                var html = admin_html
+                var s = admin_html
                 if (process.env.dev) {
-                    html = await fs.readFile("static/admin.html", { encoding: 'utf8' })
+                    s = await fs.readFile("html/admin.html", { encoding: 'utf8' })
                 }
-                return new Response(html, {
+                return new Response(s, {
                     status: 200,
                     headers: new Headers({
                         "ETag": admin_html_etag,
@@ -252,6 +252,21 @@ Bun.serve({
                 var r = basicauth(req); if (r) return r
                 var j = await req.json()
                 var r = db.c('product', {
+                    name: j.name,
+                    pay_url: j.pay_url,
+                })
+                return new Response(JSON.stringify(r), {
+                    status: 200,
+                    headers: new Headers({
+                        "Content-Type": "application/json",
+                    }),
+                })
+            }
+            if (p == "/updateproduct") {
+                var r = basicauth(req); if (r) return r
+                var j = await req.json()
+                var r = db.u('product', {
+                    id: j.id,
                     name: j.name,
                     pay_url: j.pay_url,
                 })

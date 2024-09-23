@@ -1,7 +1,8 @@
-import migrate from './lib/migrate'
+import crypto from 'node:crypto';
+import lib from './lib/lib.js'
 
 var migration = function(sqlite) {
-    var m = migrate(sqlite)
+    var m = lib.migrate(sqlite)
     m('create user table', `
 create table user(
     id INTEGER PRIMARY KEY AUTOINCREMENT,

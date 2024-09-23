@@ -24,55 +24,50 @@
                         products: [],
                         settings: {},
                         origin: location.origin,
+                        ing: false,
                     };
                 },
                 watch: {
                     tab: async function () {
-                        try {
-                            if (this.tab == 'user') {
-                                this.user = null
-                                await this.getusers()
-                            }
-                            if (this.tab == 'brook') {
-                                this.brook = null
-                                await this.getbrooks()
-                            }
-                            if (this.tab == 'task') {
-                                this.task = null
-                                await this.gettasks()
-                            }
-                            if (this.tab == 'product') {
-                                this.product = null
-                                await this.getproducts()
-                            }
-                        } catch (e) {
-                            alert(`${e}`)
+                        if (this.tab == 'user') {
+                            this.user = null
+                            await this.getusers()
+                        }
+                        if (this.tab == 'brook') {
+                            this.brook = null
+                            await this.getbrooks()
+                        }
+                        if (this.tab == 'task') {
+                            this.task = null
+                            await this.gettasks()
+                        }
+                        if (this.tab == 'product') {
+                            this.product = null
+                            await this.getproducts()
                         }
                     },
                 },
                 async mounted() {
-                    try {
-                        await this.getbrooks()
-                        await this.getsettings()
-                        document.title = this.settings.site_name ? this.settings.site_name.v : ''
-                    } catch (e) {
-                        alert(`${e}`)
-                    }
+                    await this.getbrooks()
+                    await this.getsettings()
+                    document.title = this.settings.site_name ? this.settings.site_name.v : ''
                 },
                 methods: {
                     async getusers() {
+                        this.ing = true
                         try {
                             var res = await fetch("/getusers")
                             if (res.status != 200) {
-                                alert(await res.text())
-                                return
+                                throw await res.text()
                             }
                             this.users = await res.json()
                         } catch (e) {
                             alert(`${e}`)
                         }
+                        this.ing = false
                     },
                     async adduser() {
+                        this.ing = true
                         try {
                             var user = JSON.parse(JSON.stringify(this.user))
                             user.expired_at = parseInt(new Date(user.expired_at).getTime() / 1000)
@@ -81,14 +76,14 @@
                                 body: JSON.stringify(user),
                             })
                             if (res.status != 200) {
-                                alert(await res.text())
-                                return
+                                throw await res.text()
                             }
                             this.users.push(await res.json())
                             this.user = null;
                         } catch (e) {
                             alert(`${e}`)
                         }
+                        this.ing = false
                     },
                     async edituser(user) {
                         this.user = {
@@ -98,6 +93,7 @@
                         }
                     },
                     async updateuser() {
+                        this.ing = true
                         try {
                             var user = JSON.parse(JSON.stringify(this.user))
                             user.expired_at = parseInt(new Date(user.expired_at).getTime() / 1000)
@@ -106,157 +102,188 @@
                                 body: JSON.stringify(user),
                             })
                             if (res.status != 200) {
-                                alert(await res.text())
-                                return
+                                throw await res.text()
                             }
                             this.users.splice(this.users.findIndex(v => v.id == user.id), 1, await res.json());
                             this.user = null;
                         } catch (e) {
                             alert(`${e}`)
                         }
+                        this.ing = false
                     },
                     async getbrooks() {
+                        this.ing = true
                         try {
                             var res = await fetch("/getbrooks")
                             if (res.status != 200) {
-                                alert(await res.text())
-                                return
+                                throw await res.text()
                             }
                             this.brooks = await res.json()
                         } catch (e) {
                             alert(`${e}`)
                         }
+                        this.ing = false
                     },
                     async addbrook() {
+                        this.ing = true
                         try {
                             var res = await fetch("/addbrook", {
                                 method: "POST",
                                 body: JSON.stringify(this.brook),
                             })
                             if (res.status != 200) {
-                                alert(await res.text())
-                                return
+                                throw await res.text()
                             }
                             this.brooks.push(await res.json())
                             this.brook = null;
                         } catch (e) {
                             alert(`${e}`)
                         }
+                        this.ing = false
                     },
                     async removebrook(brook) {
+                        this.ing = true
                         try {
                             var res = await fetch("/removebrook", {
                                 method: "POST",
                                 body: JSON.stringify(brook),
                             })
                             if (res.status != 200) {
-                                alert(await res.text())
-                                return
+                                throw await res.text()
                             }
                             this.brooks.splice(this.brooks.findIndex(v => v.id == brook.id), 1)
                             this.brook = null;
                         } catch (e) {
                             alert(`${e}`)
                         }
+                        this.ing = false
                     },
                     async getproducts() {
+                        this.ing = true
                         try {
                             var res = await fetch("/getproducts")
                             if (res.status != 200) {
-                                alert(await res.text())
-                                return
+                                throw await res.text()
                             }
                             this.products = await res.json()
                         } catch (e) {
                             alert(`${e}`)
                         }
+                        this.ing = false
                     },
                     async addproduct() {
+                        this.ing = true
                         try {
                             var res = await fetch("/addproduct", {
                                 method: "POST",
                                 body: JSON.stringify(this.product),
                             })
                             if (res.status != 200) {
-                                alert(await res.text())
-                                return
+                                throw await res.text()
                             }
                             this.products.push(await res.json())
                             this.product = null;
                         } catch (e) {
                             alert(`${e}`)
                         }
+                        this.ing = false
                     },
                     async removeproduct(product) {
+                        this.ing = true
                         try {
                             var res = await fetch("/removeproduct", {
                                 method: "POST",
                                 body: JSON.stringify(product),
                             })
                             if (res.status != 200) {
-                                alert(await res.text())
-                                return
+                                throw await res.text()
                             }
                             this.products.splice(this.products.findIndex(v => v.id == product.id), 1)
                             this.product = null;
                         } catch (e) {
                             alert(`${e}`)
                         }
+                        this.ing = false
+                    },
+                    async editproduct(product) {
+                        this.product = {
+                            ...product,
+                        }
+                    },
+                    async updateproduct() {
+                        this.ing = true
+                        try {
+                            var res = await fetch("/updateproduct", {
+                                method: "POST",
+                                body: JSON.stringify(this.product),
+                            })
+                            if (res.status != 200) {
+                                throw await res.text()
+                            }
+                            this.products.splice(this.products.findIndex(v => v.id == this.product.id), 1, await res.json());
+                            this.product = null;
+                        } catch (e) {
+                            alert(`${e}`)
+                        }
+                        this.ing = false
                     },
                     nameoflink(v) {
                         var u = new URL(v)
                         return u.searchParams.get("name") ?? 'no name'
                     },
                     async gettasks() {
+                        this.ing = true
                         try {
                             var res = await fetch("/gettasks")
                             if (res.status != 200) {
-                                alert(await res.text())
-                                return
+                                throw await res.text()
                             }
                             this.tasks = await res.json()
                         } catch (e) {
                             alert(`${e}`)
                         }
+                        this.ing = false
                     },
                     async addtask() {
+                        this.ing = true
                         try {
                             var res = await fetch("/addtask", {
                                 method: "POST",
                                 body: JSON.stringify(this.task),
                             })
                             if (res.status != 200) {
-                                alert(await res.text())
-                                return
+                                throw await res.text()
                             }
                             this.tasks.push(await res.json())
                             this.task = null;
                         } catch (e) {
                             alert(`${e}`)
                         }
+                        this.ing = false
                     },
                     async removetask(task) {
+                        this.ing = true
                         try {
                             var res = await fetch("/removetask", {
                                 method: "POST",
                                 body: JSON.stringify(task),
                             })
                             if (res.status != 200) {
-                                alert(await res.text())
-                                return
+                                throw await res.text()
                             }
                             this.tasks.splice(this.tasks.findIndex(v => v.id == task.id), 1)
                             this.task = null;
                         } catch (e) {
                             alert(`${e}`)
                         }
+                        this.ing = false
                     },
                     async getsettings() {
+                        this.ing = true
                         try {
                             var res = await fetch("/getsettings")
                             if (res.status != 200) {
-                                alert(await res.text())
-                                return
+                                throw await res.text()
                             }
                             (await res.json()).forEach(v => {
                                 this.settings[v.k] = v;
@@ -264,16 +291,17 @@
                         } catch (e) {
                             alert(`${e}`)
                         }
+                        this.ing = false
                     },
                     async updatesetting(setting, setting1) {
+                        this.ing = true
                         try {
                             var res = await fetch("/updatesetting", {
                                 method: "POST",
                                 body: JSON.stringify(setting),
                             })
                             if (res.status != 200) {
-                                alert(await res.text())
-                                return
+                                throw await res.text()
                             }
                             if (setting1) {
                                 var res = await fetch("/updatesetting", {
@@ -281,14 +309,13 @@
                                     body: JSON.stringify(setting1),
                                 })
                                 if (res.status != 200) {
-                                    alert(await res.text())
-                                    return
+                                    throw await res.text()
                                 }
                             }
-                            alert('ok')
                         } catch (e) {
                             alert(`${e}`)
                         }
+                        this.ing = false
                     },
                 },
             };
@@ -570,7 +597,7 @@
         </div>
         <div v-if="tab=='product'" style="padding:30px;">
             <div v-if="product" style="display:flex;flex-direction:column">
-                <h3>Add Product</h3>
+                <h3>{{ product.id ? 'Edit Product' : 'Add Product' }}</h3>
                 <div style="display:flex;justify-content:flex-end">
                     <button @click="this.product=null" class="border">Back</button>
                 </div>
@@ -586,7 +613,8 @@
                     <label>Payment URL</label>
                 </div>
                 <div style="height:30px;"></div>
-                <button @click="addproduct">Add</button>
+                <button @click="addproduct" v-if="!product.id">Add</button>
+                <button @click="updateproduct" v-if="product.id">Update</button>
             </div>
             <div v-if="!product">
                 <h3>Product</h3>
@@ -599,6 +627,9 @@
                     <h6>{{v.id}}</h6>
                     <div style="width:30%;overflow-x:scroll;white-space: nowrap;font-weight:bold;">{{v.name}}</div>
                     <div class="max" style="overflow-x:scroll;white-space: nowrap"><span>{{v.pay_url}}</span></div>
+                    <a @click="editproduct(v)">
+                        <i>edit</i>
+                    </a>
                     <a @click="removeproduct(v)">
                         <i>delete</i>
                     </a>
@@ -745,6 +776,9 @@
             </div>
         </div>
     </main>
+    <div :class="'overlay center-align middle-align' + (ing ? ' active' : '')">
+        <progress class="circle"></progress>
+    </div>
 </body>
 
 </html>

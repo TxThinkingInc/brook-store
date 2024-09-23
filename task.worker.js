@@ -1,9 +1,11 @@
 import { CronJob } from 'cron';
 import * as fs from 'node:fs/promises';
 import { $ } from 'bun';
+import os from 'node:os';
 import lib from './lib/lib.js'
 
-export default function(db) {
+self.onmessage = (event) => {
+    var db = lib.sqlite(os.homedir() + "/.brook.db", { wal: true })
     new CronJob('0 0 * * * *', async function() {
         var l = db.query(`select * from task`).all()
         for (var i = 0; i < l.length; i++) {
