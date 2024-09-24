@@ -175,7 +175,7 @@ Bun.serve({
             }
             if (p == "/getusers") {
                 var r = basicauth(req); if (r) return r
-                var l = db.query(`select * from user`).all()
+                var l = db.query(`select * from user order by id desc`).all()
                 return new Response(JSON.stringify(l), {
                     status: 200,
                     headers: new Headers({
@@ -205,7 +205,7 @@ Bun.serve({
             }
             if (p == "/getbrooks") {
                 var r = basicauth(req); if (r) return r
-                var l = db.query(`select * from brook`).all()
+                var l = db.query(`select * from brook order by id desc`).all()
                 return new Response(JSON.stringify(l), {
                     status: 200,
                     headers: new Headers({
@@ -240,7 +240,7 @@ Bun.serve({
             }
             if (p == "/gettasks") {
                 var r = basicauth(req); if (r) return r
-                var l = db.query(`select * from task`).all()
+                var l = db.query(`select * from task order by id desc`).all()
                 return new Response(JSON.stringify(l), {
                     status: 200,
                     headers: new Headers({
@@ -437,13 +437,13 @@ Bun.serve({
                 if (u.expired_at < lib.now()) {
                     throw `expired user ${u.id}`
                 }
-                var s = db.query('select * from setting where k="import_dislike_browser"').get().v
-                if (s == 'true') {
-                    if (req.headers.get('User-Agent').indexOf('Go-http-client/') == -1 && req.headers.get('User-Agent').indexOf('Dart/') == -1) {
+                if (req.headers.get('User-Agent').indexOf('Go-http-client/') == -1 && req.headers.get('User-Agent').indexOf('Dart/') == -1) {
+                    var s = db.query('select * from setting where k="import_dislike_browser"').get().v
+                    if (s == 'true') {
                         throw 'You need Brook to import this link'
                     }
                 }
-                var l = db.query(`select * from brook`).all()
+                var l = db.query(`select * from brook order by id desc`).all()
                 var s = l.map(v => {
                     var u = new URL(v.link)
                     u.searchParams.set("token", q('uuid'))

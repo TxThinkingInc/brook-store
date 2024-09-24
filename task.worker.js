@@ -6,7 +6,7 @@ import lib from './lib/lib.js'
 
 self.onmessage = (event) => {
     var db = lib.sqlite(os.homedir() + "/.brook.db", { wal: true })
-    new CronJob('0 0 * * * *', async function() {
+    new CronJob('0 0 0 * * *', async function() {
         var l = db.query(`select * from task`).all()
         for (var i = 0; i < l.length; i++) {
             var v = l[i]

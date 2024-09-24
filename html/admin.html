@@ -78,7 +78,7 @@
                             if (res.status != 200) {
                                 throw await res.text()
                             }
-                            this.users.push(await res.json())
+                            this.users.splice(0, 0, await res.json())
                             this.user = null;
                         } catch (e) {
                             alert(`${e}`)
@@ -134,7 +134,7 @@
                             if (res.status != 200) {
                                 throw await res.text()
                             }
-                            this.brooks.push(await res.json())
+                            this.brooks.splice(0, 0, await res.json())
                             this.brook = null;
                         } catch (e) {
                             alert(`${e}`)
@@ -254,7 +254,7 @@
                             if (res.status != 200) {
                                 throw await res.text()
                             }
-                            this.tasks.push(await res.json())
+                            this.tasks.splice(0, 0, await res.json())
                             this.task = null;
                         } catch (e) {
                             alert(`${e}`)
@@ -324,7 +324,7 @@
     </script>
 </head>
 
-<body style="margin:0;background-color:#f9f9fb">
+<body style="margin:0;" class="dark">
     <nav class="m l left drawer scroll">
         <div style="padding: 15px;">
             <h5>
@@ -457,7 +457,7 @@
             <div>Contact</div>
         </a>
     </nav>
-    <main style="background-color:#ffffff">
+    <main>
         <div v-if="tab=='brook'" style="padding:30px;">
             <div v-if="brook" style="display:flex;flex-direction:column">
                 <h3>Add Brook</h3>
@@ -546,7 +546,7 @@
                     <button @click="this.task=null" class="border">Back</button>
                 </div>
                 <div style="height:30px;"></div>
-                <div style="text-align: center;">Once you have deployed a brook, the task will regularly tally each user’s traffic from the deployed brook every hour. Certainly, you can deploy multiple brook with different parameters on one machine.</div>
+                <div style="text-align: center;">Once you have deployed a brook, the task will regularly tally each user’s traffic from the deployed brook every day. Certainly, you can deploy multiple brook with different parameters on one machine.</div>
                 <div style="height:30px;"></div>
                 <div class="field label border">
                     <input type="text" v-model="task.server">
