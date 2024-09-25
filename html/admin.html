@@ -546,7 +546,7 @@
                     <button @click="this.task=null" class="border">Back</button>
                 </div>
                 <div style="height:30px;"></div>
-                <div style="text-align: center;">Once you have deployed a brook, the task will regularly tally each user’s traffic from the deployed brook every day. Certainly, you can deploy multiple brook with different parameters on one machine.</div>
+                <div style="text-align: center;">Once you have deployed a brook, the task will regularly tally each user’s traffic from the deployed brook every hour. Certainly, you can deploy multiple brook with different parameters on one machine.</div>
                 <div style="height:30px;"></div>
                 <div class="field label border">
                     <input type="text" v-model="task.server">
@@ -556,6 +556,7 @@
                 <div class="field label border">
                     <input type="text" v-model="task.user">
                     <label>User</label>
+                    <span class="helper">Generally use root unless you know what you are doing</span>
                 </div>
                 <div class="field label border">
                     <input type="text" v-model="task.password">
