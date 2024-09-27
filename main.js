@@ -132,11 +132,11 @@ Bun.serve({
                 var r = basicauth(req); if (r) return r
                 var j = await req.json()
                 var hash = crypto.createHash('sha256');
-                hash.update(j.password);
+                hash.update(j.password.trim());
                 var password = hash.digest('hex')
                 var r = db.c('user', {
                     uuid: crypto.randomUUID().replaceAll('-', ''),
-                    username: j.username,
+                    username: j.username.trim().toLowerCase(),
                     password: password,
                     expired_at: j.expired_at,
                     traffic_max: j.traffic_max,
@@ -156,7 +156,7 @@ Bun.serve({
                 var o = { id: j.id }
                 if (j.password) {
                     var hash = crypto.createHash('sha256');
-                    hash.update(j.password);
+                    hash.update(j.password.trim());
                     o.password = hash.digest('hex')
                 }
                 if (j.expired_at) {
@@ -344,12 +344,19 @@ Bun.serve({
                     throw `Please contact ${s} to open an account`
                 }
                 var j = await req.json()
+                if (j.username.length > 30 || j.password.length > 30) {
+                    throw 'username or password too long'
+                }
+                var r = db.query('select * from user where username=?').get(j.username.trim().toLowerCase())
+                if (r) {
+                    throw 'username exists, try another one'
+                }
                 var hash = crypto.createHash('sha256');
-                hash.update(j.password);
+                hash.update(j.password.trim());
                 var password = hash.digest('hex')
                 var r = db.c('user', {
                     uuid: crypto.randomUUID().replaceAll('-', ''),
-                    username: j.username,
+                    username: j.username.trim().toLowerCase(),
                     password: password,
                     expired_at: lib.now(),
                     traffic_max: 0,
@@ -367,9 +374,9 @@ Bun.serve({
                 await recaptchaauth(req)
                 var j = await req.json()
                 var hash = crypto.createHash('sha256');
-                hash.update(j.password);
+                hash.update(j.password.trim());
                 var password = hash.digest('hex')
-                var r = db.query(`select * from user where username=? and password=?`).get(j.username, password)
+                var r = db.query(`select * from user where username=? and password=?`).get(j.username.trim().toLowerCase(), password)
                 if (!r) {
                     throw 'username or password wrong'
                 }
@@ -418,8 +425,11 @@ Bun.serve({
                 if (!r) {
                     throw 'hacking'
                 }
+                if (j.password.length > 30) {
+                    throw 'password too long'
+                }
                 var hash = crypto.createHash('sha256');
-                hash.update(j.password);
+                hash.update(j.password.trim());
                 var password = hash.digest('hex')
                 var r = db.u('user', { id: r.id, password: password })
                 return new Response(JSON.stringify(r), {

@@ -60,7 +60,7 @@ self.onmessage = (event) => {
                     }
                 }
             } catch (e) {
-                console.log(e)
+                console.log(new Date(), e)
             }
         }
         setTimeout(task, 60 * 60 * 1000)

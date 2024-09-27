@@ -1,11 +1,11 @@
-# Brook User System
+# Brook Store
 
-This is a sample implementation of [Brook User System](https://github.com/txthinking/brook/blob/master/protocol/user.md)
+This is an implementation of [Brook User System](https://github.com/txthinking/brook/blob/master/protocol/user.md)
 
 ## Install via [nami](https://github.com/txthinking/nami)
 
 ```
-nami install sshexec brook-user-system
+nami install sshexec brook-store
 ```
 
 If you don't have joker and nico yet
@@ -17,7 +17,7 @@ nami install joker nico
 ## Run
 
 ```
-joker brook-user-system
+joker brook-store
 joker nico yourdomain.com http://127.0.0.1:24402
 ```
 

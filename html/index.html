@@ -334,7 +334,16 @@
         </div>
         <div style="height:30px;"></div>
         <div style="padding:0px 16px;">
-            <div style="height:30px;"></div>
+            <blockquote>
+                <h3>Contact</h3>
+                <div style="height:30px;"></div>
+                <a class="link" :href="settings.contact ? settings.contact.v : ''" target="_blank">{{settings.contact ? settings.contact.v : ''}}</a>
+                <div style="height:30px;"></div>
+                <div><small>This service is built using <a href="https://github.com/txthinking/brook" target="_blank">brook-related open-source software</a>; if you have any questions, this is the only way to contact us.</small></div>
+            </blockquote>
+        </div>
+        <div style="height:30px;"></div>
+        <div style="padding:0px 16px;">
             <div v-if="!mobile" style="display: flex;justify-content:space-between;">
                 <a target="_blank" class="button" href="https://apps.apple.com/us/app/brook-network-tool/id1216002642">
                     <i>phone_iphone</i>
@@ -407,12 +416,6 @@
         </div>
         <div style="height:30px;"></div>
         <div style="padding:0px 16px;">
-            <h3>Help</h3>
-            <div style="height:30px;"></div>
-            <a :href="settings.contact ? settings.contact.v : ''" target="_blank">{{settings.contact ? settings.contact.v : ''}}</a>
-        </div>
-        <div style="height:30px;"></div>
-        <div style="padding:0px 16px;">
             <h3>Password</h3>
             <div style="height:30px;"></div>
             <div style="display: flex;">
@@ -427,13 +430,18 @@
             <div v-if="ing" style="display:flex;">
                 <progress class="circle"></progress>
             </div>
-            <div style="height:30px;"></div>
-            <div><small>Sharing your link is equivalent to sharing your password and entire account</small></div>
+        </div>
+        <div style="height:30px;"></div>
+        <div style="padding:0px 16px;">
+            <h3>Do not</h3>
+            <ul>
+                <li>Sharing your link is equivalent to sharing your password and entire account. And sharing accounts may lead to a decline in the overall quality of service.</li>
+                <li>Piracy, politics, BT, speed testing, automation, and other activities that occupy bandwidth for extended periods are prohibited.</li>
+            </ul>
             <div style="height:30px;"></div>
             <div style="display: flex;">
                 <button class="border small-round" @click="signout">Signout</button>
             </div>
-            <div style="height:30px;"></div>
         </div>
         <div style="height:30px;"></div>
     </main>
