@@ -11,6 +11,7 @@ self.onmessage = (event) => {
         for (var i = 0; i < l.length; i++) {
             var v = l[i]
             try {
+                await fs.rm("/tmp/_", { recursive: true, force: true })
                 if (v.password) {
                     await $`sshexec -s '${v.server}' -u '${v.user}' -p '${v.password}' --download '${v.serverlog_path}' --to '/tmp/_' --timeout 600`
                 }
