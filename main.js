@@ -9,7 +9,9 @@ import worker from './worker.bundle.js';
 var db = lib.sqlite(os.homedir() + "/.brook.db", { wal: true })
 migration(db)
 
-lib.go(new TextDecoder().decode(worker("worker/task.worker.js")), null)
+if (!process.env.dev) {
+    lib.go(new TextDecoder().decode(worker("worker/task.worker.js")), null)
+}
 
 var user_api_path = db.query("select * from setting where k='user_api_path'").get().v
 var index_html = new TextDecoder().decode(html("html/index.html"))
@@ -22,6 +24,7 @@ hash.update(admin_html);
 var admin_html_etag = hash.digest('hex')
 
 function basicauth(req) {
+    if (process.env.dev) return
     var s = req.headers.get("Authorization")
     var u = db.query('select * from setting where k="adminuser"').get().v
     var p = db.query('select * from setting where k="adminpassword"').get().v
@@ -114,18 +117,6 @@ Bun.serve({
                 }
                 return new Response(r.id)
             }
-            if (p == "/blockDomainList") {
-                var s = db.query('select * from setting where k="blockDomainList"').get().v
-                return new Response(s)
-            }
-            if (p == "/blockCIDR4List") {
-                var s = db.query('select * from setting where k="blockCIDR4List"').get().v
-                return new Response(s)
-            }
-            if (p == "/blockCIDR6List") {
-                var s = db.query('select * from setting where k="blockCIDR6List"').get().v
-                return new Response(s)
-            }
 
             // backend
             if (p == "/adduser") {
@@ -175,7 +166,11 @@ Bun.serve({
             }
             if (p == "/getusers") {
                 var r = basicauth(req); if (r) return r
-                var l = db.query(`select * from user order by id desc`).all()
+                if (q('is_not_expired') == 'true') {
+                    var l = db.query(`select * from user where expired_at>? order by id desc`).all(lib.now())
+                } else {
+                    var l = db.query(`select * from user order by id desc`).all()
+                }
                 return new Response(JSON.stringify(l), {
                     status: 200,
                     headers: new Headers({

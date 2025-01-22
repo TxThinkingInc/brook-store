@@ -45,15 +45,6 @@ create table setting(
     m('init user api path setting', `
 insert into setting(k, v) values('user_api_path', '${uuid}')
 `)
-    m('init blockDomainList setting', `
-insert into setting(k, v) values('blockDomainList', '360.com\n360.cn\nspeedtest.net\nspeedtest.cn\nfast.com\ntest.ustc.edu.cn\nspeed.neu.edu.cn\ntest6.ustc.edu.cn\nspeed.cloudflare.com\nspeed4.neu6.edu.cn\nspeedtest.ecnu.edu.cn\nspeed5.ntu.edu.tw\nspeed.net.virginia.edu\nspeedtest.tp.edu.tw\nspeedtest.jh.edu')
-`)
-    m('init blockCIDR4List setting', `
-insert into setting(k, v) values('blockCIDR4List', '127.0.0.1/32\n1.2.4.8/32')
-`)
-    m('init blockCIDR6List setting', `
-insert into setting(k, v) values('blockCIDR6List', '::1/128\nfd00::/8')
-`)
     m('init adminuser setting', `
 insert into setting(k, v) values('adminuser', 'brook')
 `)

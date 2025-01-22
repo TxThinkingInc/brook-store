@@ -16,6 +16,7 @@
                         tab: 'brook',
                         user: null,
                         users: [],
+                        is_not_expired: 'false',
                         brook: null,
                         brooks: [],
                         task: null,
@@ -46,6 +47,9 @@
                             await this.getproducts()
                         }
                     },
+                    is_not_expired: async function () {
+                        await this.getusers()
+                    }
                 },
                 async mounted() {
                     await this.getbrooks()
@@ -56,7 +60,7 @@
                     async getusers() {
                         this.ing = true
                         try {
-                            var res = await fetch("/getusers")
+                            var res = await fetch("/getusers?is_not_expired=" + this.is_not_expired)
                             if (res.status != 200) {
                                 throw await res.text()
                             }
@@ -349,19 +353,6 @@
             <div>Product</div>
         </a>
         <div class="small-divider"></div>
-        <a @click="this.tab='blockDomainList'">
-            <i>reorder</i>
-            <div>blockDomainList</div>
-        </a>
-        <a @click="this.tab='blockCIDR4List'">
-            <i>reorder</i>
-            <div>blockCIDR4List</div>
-        </a>
-        <a @click="this.tab='blockCIDR6List'">
-            <i>reorder</i>
-            <div>blockCIDR6List</div>
-        </a>
-        <div class="small-divider"></div>
         <a @click="this.tab='admin'">
             <i>admin_panel_settings</i>
             <div>Admin</div>
@@ -415,19 +406,6 @@
             <div>Product</div>
         </a>
         <div>|</div>
-        <a @click="this.tab='blockDomainList'">
-            <i>reorder</i>
-            <div>blockDomainList</div>
-        </a>
-        <a @click="this.tab='blockCIDR4List'">
-            <i>reorder</i>
-            <div>blockCIDR4List</div>
-        </a>
-        <a @click="this.tab='blockCIDR6List'">
-            <i>reorder</i>
-            <div>blockCIDR6List</div>
-        </a>
-        <div>|</div>
         <a @click="this.tab='admin'">
             <i>admin_panel_settings</i>
             <div>Admin</div>
@@ -465,7 +443,7 @@
                     <button @click="this.brook=null" class="border">Back</button>
                 </div>
                 <div style="height:30px;"></div>
-                <div style="text-align: center;word-break: break-all;">When deploying brook, your should specify <code>--userAPI '{{origin}}/{{settings.user_api_path.v}}'</code> and <code>--serverLog</code> and <code>--pid</code>. When you make brook link, no need to specify <code>--token</code>, because this system will auto append token to your brook link. Based on different combinations of the brook link parameters, there may be one or more brook links for one brook.</div>
+                <div style="text-align: center;word-break: break-all;">When deploying brook, your should specify <code>--userAPI '{{origin}}/{{settings.user_api_path.v}}'</code> and <code>--userLog</code> and <code>--pid</code>. When you make brook link, no need to specify <code>--token</code>, because this system will auto append token to your brook link. Based on different combinations of the brook link parameters, there may be one or more brook links you can make for one brook.</div>
                 <div style="height:30px;"></div>
                 <div class="field label border">
                     <input type="text" v-model="brook.link">
@@ -524,7 +502,15 @@
                 <div style="display:flex;justify-content:flex-end">
                     <button @click="this.user={}">Add User</button>
                 </div>
-                <div style="height:30px;"></div>
+                <div style="display:flex;">
+                    <div class="field suffix border">
+                        <select v-model="is_not_expired">
+                            <option :selected="is_not_expired == 'true'" value="true">Not Expired</option>
+                            <option :selected="is_not_expired == 'false'" value="false">All</option>
+                        </select>
+                        <i>arrow_drop_down</i>
+                    </div>
+                </div>
                 <div class="row" v-for="v in users">
                     <i class="light-green-text">face</i>
                     <h6>{{v.id}}</h6>
@@ -569,8 +555,8 @@
                 </div>
                 <div class="field label border">
                     <input type="text" v-model="task.serverlog_path">
-                    <label>Server Log Path</label>
-                    <span class="helper">The value you specified for --serverLog when deploying brook</span>
+                    <label>User Log Path</label>
+                    <span class="helper">The value you specified for --userLog when deploying brook</span>
                 </div>
                 <div class="field label border">
                     <input type="text" v-model="task.pid_path">
@@ -635,45 +621,6 @@
                         <i>delete</i>
                     </a>
                 </div>
-            </div>
-        </div>
-        <div v-if="tab=='blockDomainList'" style="padding:30px;">
-            <div style="display:flex;flex-direction:column">
-                <h3>blockDomainList</h3>
-                <div style="height:30px;"></div>
-                <div style="text-align: center;">When deploying brook, you can specify <code>--blockDomainList '{{origin}}/blockDomainList'</code>.</div>
-                <div style="height:30px;"></div>
-                <div class="field textarea border">
-                    <textarea v-model="settings.blockDomainList.v"></textarea>
-                </div>
-                <div style="height:30px;"></div>
-                <button @click="updatesetting(settings.blockDomainList)">Update</button>
-            </div>
-        </div>
-        <div v-if="tab=='blockCIDR4List'" style="padding:30px;">
-            <div style="display:flex;flex-direction:column">
-                <h3>blockCIDR4List</h3>
-                <div style="height:30px;"></div>
-                <div style="text-align: center;">When deploying brook, you can specify <code>--blockCIDR4List '{{origin}}/blockCIDR4List'</code>.</div>
-                <div style="height:30px;"></div>
-                <div class="field textarea border">
-                    <textarea v-model="settings.blockCIDR4List.v"></textarea>
-                </div>
-                <div style="height:30px;"></div>
-                <button @click="updatesetting(settings.blockCIDR4List)">Update</button>
-            </div>
-        </div>
-        <div v-if="tab=='blockCIDR6List'" style="padding:30px;">
-            <div style="display:flex;flex-direction:column">
-                <h3>blockCIDR6List</h3>
-                <div style="height:30px;"></div>
-                <div style="text-align: center;">When deploying brook, you can specify <code>--blockCIDR6List '{{origin}}/blockCIDR6List'</code>.</div>
-                <div style="height:30px;"></div>
-                <div class="field textarea border">
-                    <textarea v-model="settings.blockCIDR6List.v"></textarea>
-                </div>
-                <div style="height:30px;"></div>
-                <button @click="updatesetting(settings.blockCIDR6List)">Update</button>
             </div>
         </div>
         <div v-if="tab=='admin'" style="padding:30px;">
