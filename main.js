@@ -12,13 +12,6 @@ if (!process.env.dev) {
 }
 
 var user_api_path = db.query("select * from setting where k='user_api_path'").get().v
-var hash = crypto.createHash('sha1');
-hash.update(user_api_path);
-var user_api_path_sha1 = hash.digest('hex')
-// compatible
-var hash = crypto.createHash('md5');
-hash.update(user_api_path);
-var user_api_path_md5 = hash.digest('hex')
 
 function basicauth(req) {
     if (process.env.dev) return
