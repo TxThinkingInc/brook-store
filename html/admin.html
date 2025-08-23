@@ -24,10 +24,8 @@
                         product: null,
                         products: [],
                         settings: {},
-                        codes: [],
                         origin: location.origin,
                         ing: false,
-                        code_path: '',
                     };
                 },
                 watch: {
@@ -47,9 +45,6 @@
                         if (this.tab == 'product') {
                             this.product = null
                             await this.getproducts()
-                        }
-                        if (this.tab == 'plusclientcode') {
-                            await this.getcodes()
                         }
                     },
                     is_not_expired: async function () {
@@ -297,7 +292,6 @@
                             (await res.json()).forEach(v => {
                                 this.settings[v.k] = v;
                             });
-                            this.code_path = await this.sha1(this.settings.user_api_path.v);
                         } catch (e) {
                             alert(`${e}`)
                         }
@@ -341,39 +335,6 @@
                             alert(`${e}`)
                         }
                         this.ing = false
-                    },
-                    async generatecodes() {
-                        this.ing = true
-                        try {
-                            var res = await fetch("/generatebrookbusinessplusclientcodes")
-                            if (res.status != 200) {
-                                throw await res.text()
-                            }
-                        } catch (e) {
-                            alert(`${e}`)
-                        }
-                        this.ing = false
-                        await this.getcodes();
-                    },
-                    async getcodes() {
-                        this.ing = true
-                        try {
-                            var res = await fetch("/getbrookbusinessplusclientcodes")
-                            if (res.status != 200) {
-                                throw await res.text()
-                            }
-                            this.codes = await res.json()
-                        } catch (e) {
-                            alert(`${e}`)
-                        }
-                        this.ing = false
-                    },
-                    async sha1(message) {
-                        const msgBuffer = new TextEncoder().encode(message);
-                        const hashBuffer = await crypto.subtle.digest('SHA-1', msgBuffer);
-                        const hashArray = Array.from(new Uint8Array(hashBuffer));
-                        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-                        return hashHex;
                     },
                 },
             };
@@ -443,10 +404,6 @@
             <i>article</i>
             <div>Readme</div>
         </a>
-        <a @click="this.tab='plusclientcode'">
-            <i>code</i>
-            <div>Plus Client Code</div>
-        </a>
     </nav>
     <nav class="s tabbed scroll">
         <div style="padding: 15px;">
@@ -507,10 +464,6 @@
         <a @click="this.tab='readme'">
             <i>article</i>
             <div>Readme</div>
-        </a>
-        <a @click="this.tab='plusclientcode'">
-            <i>code</i>
-            <div>Plus Client Code</div>
         </a>
     </nav>
     <main>
@@ -840,29 +793,6 @@
                 </div>
                 <div style="height:30px;"></div>
                 <button @click="updatesettings(['readme'])">Update</button>
-            </div>
-        </div>
-        <div v-if="tab=='plusclientcode'" style="padding:30px;">
-            <div style="display:flex;flex-direction:column">
-                <h3>Plus Client Code</h3>
-                <div style="height:30px;"></div>
-                <div style="text-align: center;word-break: break-all;">
-                    When your customized version is the Plus Client, you need to provide this URL <code>{{origin}}/{{code_path}}</code>to TxThinking. Then you can generate the Code used to activate the Plus Client and provide it to your users. When your users use the Code to activate the Plus Client, TxThinking server will notify the URL you provided to verify the validity of the Code.
-                </div>
-                <div style="display:flex;justify-content:flex-end">
-                    <button @click="generatecodes">Generate 100 Codes</button>
-                </div>
-                <div style="height:30px;"></div>
-                <div class="row" v-for="v in codes">
-                    <i class="light-green-text">code</i>
-                    <h6>{{v.id}}</h6>
-                    <div style="width:30%;overflow-x:scroll;white-space: nowrap;font-weight:bold;">{{v.code}}</div>
-                    <div class="max" style="overflow-x:scroll;white-space: nowrap;display:flex;justify-content:space-around">
-                        <div>{{new Date(v.created_at*1000).toLocaleString()}}</div>
-                        <div>{{v.os}}</div>
-                        <div>{{v.used_at ? new Date(v.used_at*1000).toLocaleString() : ''}}</div>
-                    </div>
-                </div>
             </div>
         </div>
     </main>

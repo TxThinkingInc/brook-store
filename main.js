@@ -84,20 +84,6 @@ Bun.serve({
                 }
                 return new Response(r.id)
             }
-            // Plus Client Code Verify
-            if (p == "/" + user_api_path_sha1 || p == "/" + user_api_path_md5) {
-                var r = db.query('select * from brookbusinessplusclientcode where code=? limit 1').get(q('code'))
-                if (!r) {
-                    throw `invalid code ${q('code')}`
-                }
-                if (r.used_at > 0) {
-                    throw `this code has already been used ${q('code')}`
-                }
-                r.used_at = lib.now()
-                r.os = q('os')
-                db.u('brookbusinessplusclientcode', r)
-                return new Response()
-            }
 
             // backend
             if (p == "/adduser") {
@@ -307,33 +293,6 @@ Bun.serve({
                     })
                 }
                 return new Response(JSON.stringify(r), {
-                    status: 200,
-                    headers: new Headers({
-                        "Content-Type": "application/json",
-                    }),
-                })
-            }
-            if (p == "/generatebrookbusinessplusclientcodes") {
-                var r = basicauth(req); if (r) return r
-                for (var i = 0; i < 100; i++) {
-                    var r = db.c('brookbusinessplusclientcode', {
-                        code: crypto.randomUUID(),
-                        os: '',
-                        created_at: lib.now(),
-                        used_at: 0,
-                    })
-                }
-                return new Response(JSON.stringify(r), {
-                    status: 200,
-                    headers: new Headers({
-                        "Content-Type": "application/json",
-                    }),
-                })
-            }
-            if (p == "/getbrookbusinessplusclientcodes") {
-                var r = basicauth(req); if (r) return r
-                var l = db.query(`select * from brookbusinessplusclientcode order by id desc`).all()
-                return new Response(JSON.stringify(l), {
                     status: 200,
                     headers: new Headers({
                         "Content-Type": "application/json",

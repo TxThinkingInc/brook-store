@@ -103,14 +103,5 @@ insert into setting(k, v) values('darwin_download_url', 'https://apps.apple.com/
     m('init readme setting', `
 insert into setting(k, v) values('readme', 'Some tutorials to teach your users how to download, install, and use the client.\n\n 1. xxx\n2. xxx\n3. xxx\n\n Markdown format')
 `)
-    m('create brookbusinessplusclientcode table', `
-create table brookbusinessplusclientcode(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    code text not null UNIQUE,
-    os text not null,
-    created_at INTEGER not null,
-    used_at INTEGER not null 
-)
-`)
 }
 export default migration;
