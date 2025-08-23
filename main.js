@@ -1,9 +1,7 @@
 import os from 'node:os';
 import migration from './migration'
-import * as fs from 'node:fs/promises';
 import lib from './lib/lib.js'
 import crypto from 'node:crypto';
-import html from './html.bundle.js';
 import worker from './worker.bundle.js';
 
 var db = lib.sqlite(os.homedir() + "/.brook.db", { wal: true })
@@ -14,14 +12,13 @@ if (!process.env.dev) {
 }
 
 var user_api_path = db.query("select * from setting where k='user_api_path'").get().v
-var index_html = new TextDecoder().decode(html("html/index.html"))
+var hash = crypto.createHash('sha1');
+hash.update(user_api_path);
+var user_api_path_sha1 = hash.digest('hex')
+// compatible
 var hash = crypto.createHash('md5');
-hash.update(index_html);
-var index_html_etag = hash.digest('hex')
-var admin_html = new TextDecoder().decode(html("html/admin.html"))
-var hash = crypto.createHash('md5');
-hash.update(admin_html);
-var admin_html_etag = hash.digest('hex')
+hash.update(user_api_path);
+var user_api_path_md5 = hash.digest('hex')
 
 function basicauth(req) {
     if (process.env.dev) return
@@ -55,57 +52,27 @@ async function recaptchaauth(req) {
     }
 }
 
+import indexHtml from './html/index.html' with { type: "text" }
+import adminHtml from './html/admin.html' with { type: "text" }
 Bun.serve({
     development: process.env.dev ? true : false,
     port: process.env.dev ? 8080 : 24402,
+    idleTimeout: 255,
+    maxRequestBodySize: 5 * 1024 * 1024,
     hostname: '127.0.0.1',
+    routes: {
+        "/": (req) => new Response(process.env.dev ? Bun.file("./html/index.html") : indexHtml, { headers: { 'Content-Type': 'text/html; charset=utf-8' } }),
+        "/admin": (req) => basicauth(req) ?? new Response(process.env.dev ? Bun.file("./html/admin.html") : adminHtml, { headers: { 'Content-Type': 'text/html; charset=utf-8' } }),
+        "/admin/": (req) => basicauth(req) ?? new Response(process.env.dev ? Bun.file("./html/admin.html") : adminHtml, { headers: { 'Content-Type': 'text/html; charset=utf-8' } }),
+    },
     async fetch(req, server) {
         try {
             var p = new URL(req.url).pathname;
             var q = (k) => new URL(req.url).searchParams.get(k) ? new URL(req.url).searchParams.get(k).trim() : '';
 
-            // html
-            if (p == "/") {
-                if (!process.env.dev) {
-                    if (req.headers.get('If-None-Match') == index_html_etag) {
-                        return new Response(null, { status: 304 })
-                    }
-                }
-                var s = index_html
-                if (process.env.dev) {
-                    s = await fs.readFile("html/index.html", { encoding: 'utf8' })
-                }
-                return new Response(s, {
-                    status: 200,
-                    headers: new Headers({
-                        "ETag": index_html_etag,
-                        "Content-Type": "text/html; charset=uff-8",
-                    }),
-                })
-            }
-            if (p == "/admin" || p == "/admin/") {
-                var r = basicauth(req); if (r) return r
-                if (!process.env.dev) {
-                    if (req.headers.get('If-None-Match') == admin_html_etag) {
-                        return new Response(null, { status: 304 })
-                    }
-                }
-                var s = admin_html
-                if (process.env.dev) {
-                    s = await fs.readFile("html/admin.html", { encoding: 'utf8' })
-                }
-                return new Response(s, {
-                    status: 200,
-                    headers: new Headers({
-                        "ETag": admin_html_etag,
-                        "Content-Type": "text/html; charset=uff-8",
-                    }),
-                })
-            }
-
             // userAPI
             if (p == "/" + user_api_path) {
-                var r = db.query('select * from user where uuid=?').get(q('token'))
+                var r = db.query('select * from user where uuid=? limit 1').get(q('token'))
                 if (!r) {
                     throw `invalid token ${q('token')}`
                 }
@@ -116,6 +83,20 @@ Bun.serve({
                     throw `user ${r.id} has reached traffic_max`
                 }
                 return new Response(r.id)
+            }
+            // Plus Client Code Verify
+            if (p == "/" + user_api_path_sha1 || p == "/" + user_api_path_md5) {
+                var r = db.query('select * from brookbusinessplusclientcode where code=? limit 1').get(q('code'))
+                if (!r) {
+                    throw `invalid code ${q('code')}`
+                }
+                if (r.used_at > 0) {
+                    throw `this code has already been used ${q('code')}`
+                }
+                r.used_at = lib.now()
+                r.os = q('os')
+                db.u('brookbusinessplusclientcode', r)
+                return new Response()
             }
 
             // backend
@@ -313,6 +294,52 @@ Bun.serve({
                     }),
                 })
             }
+            if (p == "/updatesettings") {
+                var r = basicauth(req); if (r) return r
+                var l = await req.json()
+                // not more
+                for (var i = 0; i < l.length; i++) {
+                    var j = l[i]
+                    var r = db.u('setting', {
+                        id: j.id,
+                        k: j.k,
+                        v: j.v,
+                    })
+                }
+                return new Response(JSON.stringify(r), {
+                    status: 200,
+                    headers: new Headers({
+                        "Content-Type": "application/json",
+                    }),
+                })
+            }
+            if (p == "/generatebrookbusinessplusclientcodes") {
+                var r = basicauth(req); if (r) return r
+                for (var i = 0; i < 100; i++) {
+                    var r = db.c('brookbusinessplusclientcode', {
+                        code: crypto.randomUUID(),
+                        os: '',
+                        created_at: lib.now(),
+                        used_at: 0,
+                    })
+                }
+                return new Response(JSON.stringify(r), {
+                    status: 200,
+                    headers: new Headers({
+                        "Content-Type": "application/json",
+                    }),
+                })
+            }
+            if (p == "/getbrookbusinessplusclientcodes") {
+                var r = basicauth(req); if (r) return r
+                var l = db.query(`select * from brookbusinessplusclientcode order by id desc`).all()
+                return new Response(JSON.stringify(l), {
+                    status: 200,
+                    headers: new Headers({
+                        "Content-Type": "application/json",
+                    }),
+                })
+            }
             if (p == "/callback/" + user_api_path) {
                 var r = db.query('select * from user where id=?').get(q('user_id'))
                 if (!r) {
@@ -397,7 +424,7 @@ Bun.serve({
             }
             if (p == "/getsomesettings") {
                 var l = db.query(`select * from setting`).all()
-                l = l.filter(v => ['site_name', 'site_description', 'contact', 'reCAPTCHAKey'].indexOf(v.k) != -1)
+                l = l.filter(v => ['site_name', 'site_description', 'contact', 'reCAPTCHAKey', 'android_download_url', 'windows_download_url', 'linux_download_url', 'ios_download_url', 'darwin_download_url', 'readme'].indexOf(v.k) != -1)
                 return new Response(JSON.stringify(l), {
                     status: 200,
                     headers: new Headers({

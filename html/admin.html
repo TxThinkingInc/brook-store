@@ -24,8 +24,10 @@
                         product: null,
                         products: [],
                         settings: {},
+                        codes: [],
                         origin: location.origin,
                         ing: false,
+                        code_path: '',
                     };
                 },
                 watch: {
@@ -45,6 +47,9 @@
                         if (this.tab == 'product') {
                             this.product = null
                             await this.getproducts()
+                        }
+                        if (this.tab == 'plusclientcode') {
+                            await this.getcodes()
                         }
                     },
                     is_not_expired: async function () {
@@ -292,6 +297,7 @@
                             (await res.json()).forEach(v => {
                                 this.settings[v.k] = v;
                             });
+                            this.code_path = await this.sha1(this.settings.user_api_path.v);
                         } catch (e) {
                             alert(`${e}`)
                         }
@@ -320,6 +326,54 @@
                             alert(`${e}`)
                         }
                         this.ing = false
+                    },
+                    async updatesettings(ks) {
+                        this.ing = true
+                        try {
+                            var res = await fetch("/updatesettings", {
+                                method: "POST",
+                                body: JSON.stringify(ks.map(v => this.settings[v])),
+                            })
+                            if (res.status != 200) {
+                                throw await res.text()
+                            }
+                        } catch (e) {
+                            alert(`${e}`)
+                        }
+                        this.ing = false
+                    },
+                    async generatecodes() {
+                        this.ing = true
+                        try {
+                            var res = await fetch("/generatebrookbusinessplusclientcodes")
+                            if (res.status != 200) {
+                                throw await res.text()
+                            }
+                        } catch (e) {
+                            alert(`${e}`)
+                        }
+                        this.ing = false
+                        await this.getcodes();
+                    },
+                    async getcodes() {
+                        this.ing = true
+                        try {
+                            var res = await fetch("/getbrookbusinessplusclientcodes")
+                            if (res.status != 200) {
+                                throw await res.text()
+                            }
+                            this.codes = await res.json()
+                        } catch (e) {
+                            alert(`${e}`)
+                        }
+                        this.ing = false
+                    },
+                    async sha1(message) {
+                        const msgBuffer = new TextEncoder().encode(message);
+                        const hashBuffer = await crypto.subtle.digest('SHA-1', msgBuffer);
+                        const hashArray = Array.from(new Uint8Array(hashBuffer));
+                        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                        return hashHex;
                     },
                 },
             };
@@ -357,14 +411,6 @@
             <i>admin_panel_settings</i>
             <div>Admin</div>
         </a>
-        <a @click="this.tab='site_name'">
-            <i>badge</i>
-            <div>Site Name</div>
-        </a>
-        <a @click="this.tab='site_description'">
-            <i>description</i>
-            <div>Site Description</div>
-        </a>
         <a @click="this.tab='signup'">
             <i>how_to_reg</i>
             <div>Signup</div>
@@ -377,9 +423,29 @@
             <i>visibility</i>
             <div>Import Visable</div>
         </a>
+        <a @click="this.tab='site_name'">
+            <i>badge</i>
+            <div>Site Name</div>
+        </a>
+        <a @click="this.tab='site_description'">
+            <i>description</i>
+            <div>Site Description</div>
+        </a>
         <a @click="this.tab='contact'">
             <i>contact_support</i>
             <div>Contact</div>
+        </a>
+        <a @click="this.tab='download'">
+            <i>download</i>
+            <div>Downloads</div>
+        </a>
+        <a @click="this.tab='readme'">
+            <i>article</i>
+            <div>Readme</div>
+        </a>
+        <a @click="this.tab='plusclientcode'">
+            <i>code</i>
+            <div>Plus Client Code</div>
         </a>
     </nav>
     <nav class="s tabbed scroll">
@@ -410,14 +476,6 @@
             <i>admin_panel_settings</i>
             <div>Admin</div>
         </a>
-        <a @click="this.tab='site_name'">
-            <i>badge</i>
-            <div>Site Name</div>
-        </a>
-        <a @click="this.tab='site_description'">
-            <i>description</i>
-            <div>Site Description</div>
-        </a>
         <a @click="this.tab='signup'">
             <i>how_to_reg</i>
             <div>Signup</div>
@@ -430,9 +488,29 @@
             <i>visibility</i>
             <div>Import Visable</div>
         </a>
+        <a @click="this.tab='site_name'">
+            <i>badge</i>
+            <div>Site Name</div>
+        </a>
+        <a @click="this.tab='site_description'">
+            <i>description</i>
+            <div>Site Description</div>
+        </a>
         <a @click="this.tab='contact'">
             <i>contact_support</i>
             <div>Contact</div>
+        </a>
+        <a @click="this.tab='download'">
+            <i>download</i>
+            <div>Downloads</div>
+        </a>
+        <a @click="this.tab='readme'">
+            <i>article</i>
+            <div>Readme</div>
+        </a>
+        <a @click="this.tab='plusclientcode'">
+            <i>code</i>
+            <div>Plus Client Code</div>
         </a>
     </nav>
     <main>
@@ -721,6 +799,70 @@
                 </div>
                 <div style="height:30px;"></div>
                 <button @click="updatesetting(settings.contact)">Update</button>
+            </div>
+        </div>
+        <div v-if="tab=='download'" style="padding:30px;">
+            <div style="display:flex;flex-direction:column">
+                <h3>Downloads</h3>
+                <div style="height:30px;"></div>
+                <div style="text-align: center;">If you have customized clients, you can replace the following links with the download link for your customized clients. If any field is left blank, it means that the corresponding client download is not provided.</div>
+                <div style="height:30px;"></div>
+                <div class="field label border">
+                    <input type="text" v-model="settings.android_download_url.v">
+                    <label>Android</label>
+                </div>
+                <div class="field label border">
+                    <input type="text" v-model="settings.windows_download_url.v">
+                    <label>Windows</label>
+                </div>
+                <div class="field label border">
+                    <input type="text" v-model="settings.linux_download_url.v">
+                    <label>Linux</label>
+                </div>
+                <div class="field label border">
+                    <input type="text" v-model="settings.ios_download_url.v">
+                    <label>iOS</label>
+                </div>
+                <div class="field label border">
+                    <input type="text" v-model="settings.darwin_download_url.v">
+                    <label>macOS</label>
+                </div>
+                <div style="height:30px;"></div>
+                <button @click="updatesettings(['android_download_url', 'windows_download_url', 'linux_download_url', 'ios_download_url', 'darwin_download_url'])">Update</button>
+            </div>
+        </div>
+        <div v-if="tab=='readme'" style="padding:30px;">
+            <div style="display:flex;flex-direction:column">
+                <h3>Readme</h3>
+                <div style="height:30px;"></div>
+                <div class="field textarea border large-height">
+                    <textarea v-model="settings.readme.v"></textarea>
+                </div>
+                <div style="height:30px;"></div>
+                <button @click="updatesettings(['readme'])">Update</button>
+            </div>
+        </div>
+        <div v-if="tab=='plusclientcode'" style="padding:30px;">
+            <div style="display:flex;flex-direction:column">
+                <h3>Plus Client Code</h3>
+                <div style="height:30px;"></div>
+                <div style="text-align: center;word-break: break-all;">
+                    When your customized version is the Plus Client, you need to provide this URL <code>{{origin}}/{{code_path}}</code>to TxThinking. Then you can generate the Code used to activate the Plus Client and provide it to your users. When your users use the Code to activate the Plus Client, TxThinking server will notify the URL you provided to verify the validity of the Code.
+                </div>
+                <div style="display:flex;justify-content:flex-end">
+                    <button @click="generatecodes">Generate 100 Codes</button>
+                </div>
+                <div style="height:30px;"></div>
+                <div class="row" v-for="v in codes">
+                    <i class="light-green-text">code</i>
+                    <h6>{{v.id}}</h6>
+                    <div style="width:30%;overflow-x:scroll;white-space: nowrap;font-weight:bold;">{{v.code}}</div>
+                    <div class="max" style="overflow-x:scroll;white-space: nowrap;display:flex;justify-content:space-around">
+                        <div>{{new Date(v.created_at*1000).toLocaleString()}}</div>
+                        <div>{{v.os}}</div>
+                        <div>{{v.used_at ? new Date(v.used_at*1000).toLocaleString() : ''}}</div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>

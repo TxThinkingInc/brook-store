@@ -85,5 +85,32 @@ insert into product(name, pay_url) values('$3.5 for month (100G/month)', 'https:
     m('init product 2', `
 insert into product(name, pay_url) values('$30 for year (100G/month)', 'https://www.your-pay-url.com')
 `)
+    m('init android_download_url setting', `
+insert into setting(k, v) values('android_download_url', 'https://github.com/txthinking/brook/releases/latest/download/Brook.apk')
+`)
+    m('init windows_download_url setting', `
+insert into setting(k, v) values('windows_download_url', 'https://github.com/txthinking/brook/releases/latest/download/Brook.msix')
+`)
+    m('init linux_download_url setting', `
+insert into setting(k, v) values('linux_download_url', 'https://github.com/txthinking/brook/releases/latest/download/Brook.bin')
+`)
+    m('init ios_download_url setting', `
+insert into setting(k, v) values('ios_download_url', 'https://apps.apple.com/us/app/brook-network-tool/id1216002642')
+`)
+    m('init darwin_download_url setting', `
+insert into setting(k, v) values('darwin_download_url', 'https://apps.apple.com/us/app/brook-network-tool/id1216002642')
+`)
+    m('init readme setting', `
+insert into setting(k, v) values('readme', 'Some tutorials to teach your users how to download, install, and use the client.\n\n 1. xxx\n2. xxx\n3. xxx\n\n Markdown format')
+`)
+    m('create brookbusinessplusclientcode table', `
+create table brookbusinessplusclientcode(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    code text not null UNIQUE,
+    os text not null,
+    created_at INTEGER not null,
+    used_at INTEGER not null 
+)
+`)
 }
 export default migration;

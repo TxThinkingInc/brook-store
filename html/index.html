@@ -8,6 +8,7 @@
     <script type="module" src="https://cdn.jsdelivr.net/npm/beercss@3.7.8/dist/cdn/beer.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@3.4.23/dist/vue.global.prod.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/lib/marked.umd.js"></script>
     <title>Brook</title>
 
     <script>
@@ -23,6 +24,7 @@
                         mobile: /Android|iPhone/i.test(navigator.userAgent),
                         recaptcha_token: null,
                         ing: false,
+                        readme: '',
                     };
                 },
                 async mounted() {
@@ -87,6 +89,7 @@
                             (await res.json()).forEach(v => {
                                 this.settings[v.k] = v;
                             });
+                            this.readme = marked.parse(this.settings.readme.v, {gfm: true, breaks: true})
                         } catch (e) {
                             alert(`${e}`)
                         }
@@ -236,10 +239,6 @@
                 <div style="display: flex;flex-direction:row;padding-left:10px;flex-wrap:wrap">
                     <a v-for="v in products" class="chip" style="color:white;border-color: white;font-size:12px;margin-bottom:20px;">{{v.name}}</a>
                 </div>
-                <div style="height:30px;"></div>
-                <div style="padding-left:20px;">
-                    <blockquote>iOS / Android / macOS / Windows / Linux</blockquote>
-                </div>
             </div>
             <div class="s6">
                 <div style="height:90px;"></div>
@@ -277,10 +276,6 @@
                         <span class="letters">{{settings.site_description ? settings.site_description.v : ''}}</span>
                     </span>
                 </h6>
-            </div>
-            <div style="height:30px;"></div>
-            <div style="display:flex;flex-direction: row;justify-content:center">
-                <blockquote>iOS / Android / macOS / Windows / Linux</blockquote>
             </div>
             <div style="height:30px;"></div>
             <div style="display: flex;flex-direction:row;justify-content:center;padding:0px 10px;flex-wrap:wrap">
@@ -339,81 +334,60 @@
                 <div style="height:30px;"></div>
                 <a class="link" :href="settings.contact ? settings.contact.v : ''" target="_blank">{{settings.contact ? settings.contact.v : ''}}</a>
                 <div style="height:30px;"></div>
-                <div><small>This service is built using <a href="https://github.com/txthinking/brook" target="_blank">brook-related open-source software</a>; if you have any questions, this is the only way to contact us.</small></div>
             </blockquote>
         </div>
         <div style="height:30px;"></div>
         <div style="padding:0px 16px;">
             <div v-if="!mobile" style="display: flex;justify-content:space-between;">
-                <a target="_blank" class="button" href="https://apps.apple.com/us/app/brook-network-tool/id1216002642">
+                <a target="_blank" class="button" :href="settings.ios_download_url.v" v-if="settings.ios_download_url && settings.ios_download_url.v">
                     <i>phone_iphone</i>
                     <span>iOS</span>
                 </a>
-                <a target="_blank" class="button" href="https://github.com/txthinking/brook/releases/latest/download/Brook.apk">
+                <a target="_blank" class="button" :href="settings.android_download_url.v" v-if="settings.android_download_url && settings.android_download_url.v">
                     <i>phone_android</i>
                     <span>Android</span>
                 </a>
-                <a target="_blank" class="button" href="https://apps.apple.com/us/app/brook-network-tool/id1216002642">
+                <a target="_blank" class="button" :href="settings.darwin_download_url.v" v-if="settings.darwin_download_url && settings.darwin_download_url.v">
                     <i>desktop_mac</i>
                     <span>macOS</span>
                 </a>
-                <a target="_blank" class="button" href="https://github.com/txthinking/brook/releases/latest/download/Brook.msix">
+                <a target="_blank" class="button" :href="settings.windows_download_url.v" v-if="settings.windows_download_url && settings.windows_download_url.v">
                     <i>desktop_windows</i>
                     <span>Windows</span>
                 </a>
-                <a target="_blank" class="button" href="https://github.com/txthinking/brook/releases/latest/download/Brook.bin">
+                <a target="_blank" class="button" :href="settings.linux_download_url.v" v-if="settings.linux_download_url && settings.linux_download_url.v">
                     <i>computer</i>
                     <span>Linux</span>
                 </a>
             </div>
             <div v-if="mobile" style="display: flex;justify-content:space-between;">
-                <a target="_blank" class="button" href="https://apps.apple.com/us/app/brook-network-tool/id1216002642">
+                <a target="_blank" class="button" :href="settings.ios_download_url.v" v-if="settings.ios_download_url && settings.ios_download_url.v">
                     <i>phone_iphone</i>
                     <span>iOS</span>
                 </a>
-                <a target="_blank" class="button" href="https://github.com/txthinking/brook/releases/latest/download/Brook.apk">
+                <a target="_blank" class="button" :href="settings.android_download_url.v" v-if="settings.android_download_url && settings.android_download_url.v">
                     <i>phone_android</i>
                     <span>Android</span>
                 </a>
             </div>
             <div v-if="mobile" style="height:30px;"></div>
             <div v-if="mobile" style="display: flex;justify-content:space-around;">
-                <a target="_blank" class="button" href="https://apps.apple.com/us/app/brook-network-tool/id1216002642">
+                <a target="_blank" class="button" :href="settings.darwin_download_url.v" v-if="settings.darwin_download_url && settings.darwin_download_url.v">
                     <i>desktop_mac</i>
                     <span>macOS</span>
                 </a>
-                <a target="_blank" class="button" href="https://github.com/txthinking/brook/releases/latest/download/Brook.msix">
+                <a target="_blank" class="button" :href="settings.windows_download_url.v" v-if="settings.windows_download_url && settings.windows_download_url.v">
                     <i>desktop_windows</i>
                     <span>Windows</span>
                 </a>
-                <a target="_blank" class="button" href="https://github.com/txthinking/brook/releases/latest/download/Brook.bin">
+                <a target="_blank" class="button" :href="settings.linux_download_url.v" v-if="settings.linux_download_url && settings.linux_download_url.v">
                     <i>computer</i>
                     <span>Linux</span>
                 </a>
             </div>
-            <div style="height:30px;"></div>
-            <ul>
-                <li><a href="https://www.txthinking.com/talks/articles/msix-brook-en.article" target="_blank">How to install Brook on Windows?</a></li>
-                <li><a href="https://www.txthinking.com/talks/articles/linux-app-brook-en.article" target="_blank">How to install Brook on Linux?</a></li>
-            </ul>
         </div>
         <div style="height:30px;"></div>
-        <div style="padding:0px 16px;">
-            <h3>How to import link</h3>
-            <div style="height:30px;"></div>
-            <ol>
-                <li>Open Brook</li>
-                <li>Tap <i>playlist_add_circle</i> on top right</li>
-                <li>Paste your link {{origin+'/import?uuid='+user.uuid}}</li>
-                <li>Tap Import button</li>
-            </ol>
-        </div>
-        <div style="height:30px;"></div>
-        <div style="padding:0px 16px;">
-            <h3>Documentation</h3>
-            <div style="height:30px;"></div>
-            <a href="https://brook.app" target="_blank">https://brook.app</a>
-        </div>
+        <div style="padding: 0 30px" v-html="readme"></div>
         <div style="height:30px;"></div>
         <div style="padding:0px 16px;">
             <h3>Password</h3>
@@ -433,11 +407,6 @@
         </div>
         <div style="height:30px;"></div>
         <div style="padding:0px 16px;">
-            <h3>Do not</h3>
-            <ul>
-                <li>Sharing your link is equivalent to sharing your password and entire account. And sharing accounts may lead to a decline in the overall quality of service.</li>
-                <li>Piracy, politics, BT, speed testing, automation, and other activities that occupy bandwidth for extended periods are prohibited.</li>
-            </ul>
             <div style="height:30px;"></div>
             <div style="display: flex;">
                 <button class="border small-round" @click="signout">Signout</button>

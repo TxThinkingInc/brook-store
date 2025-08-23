@@ -2,6 +2,8 @@
 
 This is an implementation of [Brook User System](https://github.com/txthinking/brook/blob/master/protocol/user.md)
 
+Read more: [Brook Business: Powering Your Own Branded Client](https://www.txthinking.com/talks/articles/brook-business-en.article)
+
 ## Install via [nami](https://github.com/txthinking/nami)
 
 ```
