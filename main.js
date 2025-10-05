@@ -414,7 +414,7 @@ Bun.serve({
                 })
             }
             if (p == "/import") {
-                var u = db.query(`select * from user where uuid=?`).get(q('uuid'))
+                var u = db.query(`select * from user where uuid=?`).get(q('token'))
                 if (!u) {
                     throw 'invalid import link, try to contact your provider'
                 }
@@ -430,7 +430,7 @@ Bun.serve({
                 var l = db.query(`select * from brook order by id desc`).all()
                 var s = l.map(v => {
                     var u = new URL(v.link)
-                    u.searchParams.set("token", q('uuid'))
+                    u.searchParams.set("token", q('token'))
                     return u.toString()
                 }).join("\n")
                 return new Response(s)

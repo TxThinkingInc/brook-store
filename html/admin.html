@@ -547,7 +547,7 @@
                     <h6>{{v.id}}</h6>
                     <div style="width:30%;overflow-x:scroll;white-space: nowrap;font-weight:bold;">{{v.username}}</div>
                     <div class="max" style="overflow-x:scroll;white-space: nowrap">{{v.traffic_now}}/{{v.traffic_max}}M {{new Date(v.expired_at*1000).toLocaleString()}}</div>
-                    <a :href="'/import?uuid='+v.uuid" target="_blank">
+                    <a :href="'/import?token='+v.uuid" target="_blank">
                         <i>link</i>
                     </a>
                     <a @click="edituser(v)">

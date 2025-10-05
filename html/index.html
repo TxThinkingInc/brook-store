@@ -324,7 +324,7 @@
                 <progress :value="user.traffic_now" :max="user.traffic_max" style="background-color:#cfbcff;color:#4f378a;"></progress>
                 <div><small>{{user.traffic_now}}/{{user.traffic_max}}M/month</small></div>
                 <div style="height:10px;"></div>
-                <div style="text-align: center;word-break: break-all;">{{origin+'/import?uuid='+user.uuid}}</div>
+                <div style="text-align: center;word-break: break-all;">{{origin+'/import?token='+user.uuid}}</div>
             </article>
         </div>
         <div style="height:30px;"></div>
@@ -339,17 +339,9 @@
         <div style="height:30px;"></div>
         <div style="padding:0px 16px;">
             <div v-if="!mobile" style="display: flex;justify-content:space-between;">
-                <a target="_blank" class="button" :href="settings.ios_download_url.v" v-if="settings.ios_download_url && settings.ios_download_url.v">
-                    <i>phone_iphone</i>
-                    <span>iOS</span>
-                </a>
                 <a target="_blank" class="button" :href="settings.android_download_url.v" v-if="settings.android_download_url && settings.android_download_url.v">
                     <i>phone_android</i>
                     <span>Android</span>
-                </a>
-                <a target="_blank" class="button" :href="settings.darwin_download_url.v" v-if="settings.darwin_download_url && settings.darwin_download_url.v">
-                    <i>desktop_mac</i>
-                    <span>macOS</span>
                 </a>
                 <a target="_blank" class="button" :href="settings.windows_download_url.v" v-if="settings.windows_download_url && settings.windows_download_url.v">
                     <i>desktop_windows</i>
@@ -359,30 +351,38 @@
                     <i>computer</i>
                     <span>Linux</span>
                 </a>
-            </div>
-            <div v-if="mobile" style="display: flex;justify-content:space-between;">
                 <a target="_blank" class="button" :href="settings.ios_download_url.v" v-if="settings.ios_download_url && settings.ios_download_url.v">
                     <i>phone_iphone</i>
                     <span>iOS</span>
                 </a>
+                <a target="_blank" class="button" :href="settings.darwin_download_url.v" v-if="settings.darwin_download_url && settings.darwin_download_url.v">
+                    <i>desktop_mac</i>
+                    <span>macOS</span>
+                </a>
+            </div>
+            <div v-if="mobile" style="display: flex;justify-content:space-between;">
                 <a target="_blank" class="button" :href="settings.android_download_url.v" v-if="settings.android_download_url && settings.android_download_url.v">
                     <i>phone_android</i>
                     <span>Android</span>
+                </a>
+                <a target="_blank" class="button" :href="settings.windows_download_url.v" v-if="settings.windows_download_url && settings.windows_download_url.v">
+                    <i>desktop_windows</i>
+                    <span>Windows</span>
+                </a>
+                <a target="_blank" class="button" :href="settings.linux_download_url.v" v-if="settings.linux_download_url && settings.linux_download_url.v">
+                    <i>computer</i>
+                    <span>Linux</span>
                 </a>
             </div>
             <div v-if="mobile" style="height:30px;"></div>
             <div v-if="mobile" style="display: flex;justify-content:space-around;">
+                <a target="_blank" class="button" :href="settings.ios_download_url.v" v-if="settings.ios_download_url && settings.ios_download_url.v">
+                    <i>phone_iphone</i>
+                    <span>iOS</span>
+                </a>
                 <a target="_blank" class="button" :href="settings.darwin_download_url.v" v-if="settings.darwin_download_url && settings.darwin_download_url.v">
                     <i>desktop_mac</i>
                     <span>macOS</span>
-                </a>
-                <a target="_blank" class="button" :href="settings.windows_download_url.v" v-if="settings.windows_download_url && settings.windows_download_url.v">
-                    <i>desktop_windows</i>
-                    <span>Windows</span>
-                </a>
-                <a target="_blank" class="button" :href="settings.linux_download_url.v" v-if="settings.linux_download_url && settings.linux_download_url.v">
-                    <i>computer</i>
-                    <span>Linux</span>
                 </a>
             </div>
         </div>
